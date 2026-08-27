@@ -499,7 +499,11 @@
 
   <div class="kpi-row">
     <div class="kpi previsto"><div class="lbl">Previsto total</div><div class="val num" id="kpiPrevisto">R$ 0</div></div>
-    <div class="kpi recebido"><div class="lbl">Já recebido</div><div class="val num" id="kpiRecebido">R$ 0</div></div>
+    <div class="kpi recebido" onclick="openAdjustModal()" style="cursor:pointer;">
+      <div class="lbl">Já recebido ✎</div>
+      <div class="val num" id="kpiRecebido">R$ 0</div>
+      <div id="kpiAdjustNote" style="font-size:9.5px; color:var(--ink-faint); font-weight:600; margin-top:2px;"></div>
+    </div>
   </div>
 </header>
 
@@ -631,6 +635,22 @@
   </div>
 </div>
 
+<!-- ===== MODAL: ajuste manual do total recebido ===== -->
+<div class="overlay" id="adjustOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3>Ajustar total recebido</h3><button class="close-x" onclick="closeModal('adjustOverlay')">✕</button></div>
+    <p style="font-size:12px; color:var(--ink-soft); font-weight:500; line-height:1.5; margin-bottom:14px;">
+      Calculado pelas parcelas marcadas como recebidas: <b class="num" id="adjustComputed">R$ 0</b>.
+      Se o valor que caiu na conta foi diferente (ex: recebeu um pouco a mais ou a menos), digite
+      abaixo o total real — o app guarda a diferença como um ajuste manual.
+    </p>
+    <div class="field"><label>Total realmente recebido (R$)</label><input type="number" step="0.01" id="adjustValor"></div>
+    <button class="btn primary" onclick="saveAdjustment()">Salvar total</button>
+    <div style="height:8px"></div>
+    <button class="btn ghost" onclick="clearAdjustment()">Remover ajuste manual</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 </div><!-- /appRoot -->
 
@@ -648,6 +668,7 @@ let brandConfig = {
   brand2: { name:'Fiat',      color:'#2D6094', logo:null }
 };
 let receipts = {};
+let manualAdjustment = 0;
 let currentBrand = 'brand1';
 let currentFilter = 'todas';
 
@@ -799,6 +820,7 @@ async function loadState(){
     if(data.schedules) schedules = JSON.parse(data.schedules);
     if(data.brandConfig) brandConfig = JSON.parse(data.brandConfig);
     receipts = data.receipts ? JSON.parse(data.receipts) : {};
+    manualAdjustment = typeof data.manualAdjustment === 'number' ? data.manualAdjustment : 0;
   }catch(e){
     showToast('Erro ao carregar dados da nuvem');
     sales = []; receipts = {};
@@ -832,6 +854,9 @@ async function saveBrandConfig(){
 }
 async function saveReceipts(){
   try{ await userDocRef().set({receipts: JSON.stringify(receipts)}, {merge:true}); }catch(e){}
+}
+async function saveManualAdjustment(){
+  try{ await userDocRef().set({manualAdjustment}, {merge:true}); }catch(e){}
 }
 
 /* ============================================================
@@ -1006,6 +1031,36 @@ async function undoReceive(){
   closeModal('receiveOverlay');
   renderAll();
   showToast('Marcado como pendente');
+}
+
+/* ============================================================
+   AJUSTE MANUAL DO TOTAL RECEBIDO
+   ============================================================ */
+function computedRecebidoFromInstallments(){
+  return getInstallments().filter(i=>i.status==='Recebida').reduce((a,i)=>a+(i.valorRecebido||0),0);
+}
+function openAdjustModal(){
+  const computed = computedRecebidoFromInstallments();
+  document.getElementById('adjustComputed').textContent = fmtMoney(computed);
+  document.getElementById('adjustValor').value = (computed + manualAdjustment).toFixed(2);
+  document.getElementById('adjustOverlay').classList.add('show');
+}
+async function saveAdjustment(){
+  const desired = parseFloat(document.getElementById('adjustValor').value);
+  if(isNaN(desired)){ showToast('Digite um valor válido'); return; }
+  const computed = computedRecebidoFromInstallments();
+  manualAdjustment = desired - computed;
+  await saveManualAdjustment();
+  closeModal('adjustOverlay');
+  renderAll();
+  showToast('Total recebido atualizado');
+}
+async function clearAdjustment(){
+  manualAdjustment = 0;
+  await saveManualAdjustment();
+  closeModal('adjustOverlay');
+  renderAll();
+  showToast('Ajuste manual removido');
 }
 
 /* ============================================================
@@ -1233,11 +1288,15 @@ function renderRecebimentos(){
 function renderDashboard(){
   const insts = getInstallments();
   const totalPrevisto = insts.reduce((a,i)=>a+i.valorPrevisto,0);
-  const totalRecebido = insts.filter(i=>i.status==='Recebida').reduce((a,i)=>a+(i.valorRecebido||0),0);
+  const totalRecebidoComputado = insts.filter(i=>i.status==='Recebida').reduce((a,i)=>a+(i.valorRecebido||0),0);
+  const totalRecebido = totalRecebidoComputado + manualAdjustment;
   const totalPendente = insts.filter(i=>i.status!=='Recebida').reduce((a,i)=>a+i.valorPrevisto,0);
 
   document.getElementById('kpiPrevisto').textContent = fmtMoney(totalPrevisto);
   document.getElementById('kpiRecebido').textContent = fmtMoney(totalRecebido);
+  document.getElementById('kpiAdjustNote').textContent = manualAdjustment !== 0
+    ? `ajuste manual: ${manualAdjustment>0?'+':''}${fmtMoney(manualAdjustment)}`
+    : '';
   document.getElementById('heroPendente').textContent = fmtMoney(totalPendente);
   document.getElementById('headerSub').textContent = sales.length
     ? `Você tem ${sales.length} ${sales.length===1?'venda lançada':'vendas lançadas'} e ${insts.length} parcelas no total.`
