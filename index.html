@@ -6,6 +6,9 @@
 <title>CotaFlow — Controle de Comissões</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --bg:#F5F6F9;
@@ -374,9 +377,92 @@
     font-size:13px; font-weight:600; z-index:200; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s;
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+
+  /* ---------- tela de login ---------- */
+  #authScreen{
+    position:fixed; inset:0; z-index:1000;
+    background:linear-gradient(180deg, var(--primary-soft) 0%, var(--bg) 60%);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  #authScreen.hide{ display:none; }
+  .auth-box{
+    width:100%; max-width:380px;
+    background:var(--card); border:1px solid var(--border); border-radius:var(--r-lg);
+    padding:26px 22px; box-shadow:var(--shadow);
+  }
+  .auth-logo{ display:flex; align-items:center; gap:9px; margin-bottom:22px; justify-content:center; }
+  .auth-title{ font-size:19px; font-weight:800; text-align:center; letter-spacing:-0.01em; margin-bottom:4px;}
+  .auth-sub{ font-size:12.5px; color:var(--ink-soft); text-align:center; margin-bottom:20px; font-weight:500;}
+  .auth-tabs{ display:flex; background:var(--bg); border-radius:11px; padding:3px; margin-bottom:18px; }
+  .auth-tabs button{
+    flex:1; border:none; background:none; padding:9px; border-radius:9px;
+    font-size:13px; font-weight:700; color:var(--ink-soft); cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .auth-tabs button.active{ background:#fff; color:var(--ink); box-shadow:var(--shadow); }
+  .auth-error{
+    background:var(--bad-soft); color:var(--bad); font-size:12px; font-weight:600;
+    padding:9px 12px; border-radius:10px; margin-bottom:12px; display:none;
+  }
+  .auth-error.show{ display:block; }
+  .auth-divider{ display:flex; align-items:center; gap:10px; margin:16px 0; }
+  .auth-divider .line{ flex:1; height:1px; background:var(--border); }
+  .auth-divider span{ font-size:11px; color:var(--ink-faint); font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+  .auth-magic-info{
+    font-size:12px; color:var(--ink-soft); text-align:center; font-weight:500; line-height:1.5; margin-top:10px;
+  }
+  #authUserBadge{
+    position:fixed; top:14px; right:14px; z-index:60;
+    background:var(--card); border:1px solid var(--border); border-radius:100px;
+    padding:6px 12px 6px 6px; display:flex; align-items:center; gap:7px; box-shadow:var(--shadow);
+    font-size:11.5px; font-weight:600; color:var(--ink-soft);
+  }
+  #authUserBadge .av{
+    width:22px; height:22px; border-radius:50%; background:var(--primary); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800;
+  }
+  #authUserBadge button{ border:none; background:none; color:var(--ink-faint); cursor:pointer; font-size:11px; font-weight:700; }
 </style>
 </head>
 <body>
+
+<!-- ===================== TELA DE LOGIN ===================== -->
+<div id="authScreen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="brandmark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 15c2.5 0 3-3 5.5-3s3 3 5.5 3 3-6 5.5-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="7.2" r="1.6" fill="#fff"/></svg>
+      </div>
+      <div class="brandname">Cota<span>Flow</span></div>
+    </div>
+    <div class="auth-title" id="authTitle">Entrar</div>
+    <div class="auth-sub">Cada colega tem seus próprios dados, salvos na nuvem.</div>
+
+    <div class="auth-tabs">
+      <button type="button" class="active" data-mode="login" onclick="setAuthMode('login')">Entrar</button>
+      <button type="button" data-mode="signup" onclick="setAuthMode('signup')">Criar conta</button>
+    </div>
+
+    <div class="auth-error" id="authError"></div>
+
+    <div class="field"><label>E-mail</label><input type="email" id="authEmail" placeholder="voce@email.com" autocomplete="email"></div>
+    <div class="field"><label>Senha</label><input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password"></div>
+
+    <button class="btn primary" id="authSubmitBtn" onclick="submitAuth()">Entrar</button>
+
+    <div class="auth-divider"><div class="line"></div><span>ou</span><div class="line"></div></div>
+
+    <button class="btn ghost" onclick="sendMagicLink()">✉ Receber link mágico por e-mail</button>
+    <div class="auth-magic-info">Sem senha: enviamos um link no seu e-mail, é só tocar nele pra entrar.</div>
+  </div>
+</div>
+
+<!-- Badge do usuário logado -->
+<div id="authUserBadge" style="display:none;">
+  <div class="av" id="authAvatarLetter">?</div>
+  <span id="authUserEmail"></span>
+  <button onclick="logout()">Sair</button>
+</div>
 
 <div class="brandbar">
   <div class="brandmark">
@@ -385,6 +471,7 @@
   <div class="brandname">Cota<span>Flow</span></div>
 </div>
 
+<div id="appRoot" style="display:none;">
 <header class="app">
   <div class="eyebrow" id="eyebrow">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.8L18 9l-4.4 1.2L12 15l-1.6-4.8L6 9l4.4-1.2z"/></svg>
@@ -545,6 +632,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
+</div><!-- /appRoot -->
 
 <script>
 /* ============================================================
@@ -584,20 +672,140 @@ function setGreeting(){
 }
 
 /* ============================================================
-   PERSISTÊNCIA (armazenamento local do navegador — funciona
-   nativamente, sem depender do Claude)
+   FIREBASE (autenticação + banco de dados na nuvem)
    ============================================================ */
-const LS_PREFIX = 'cotaflow_';
-function lsGet(key){ try{ return localStorage.getItem(LS_PREFIX+key); }catch(e){ return null; } }
-function lsSet(key, value){ try{ localStorage.setItem(LS_PREFIX+key, value); return true; }catch(e){ return false; } }
+const firebaseConfig = {
+  apiKey: "AIzaSyCyVWVGe0vvqLFowtCLGvKWBBh7Z6tzCNU",
+  authDomain: "cotaflow-3b4ea.firebaseapp.com",
+  projectId: "cotaflow-3b4ea",
+  storageBucket: "cotaflow-3b4ea.firebasestorage.app",
+  messagingSenderId: "712940576985",
+  appId: "1:712940576985:web:6887f3f5d19541be2f9ec8"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+let currentUser = null;
+let authMode = 'login';
+
+function setAuthMode(mode){
+  authMode = mode;
+  document.querySelectorAll('.auth-tabs button').forEach(b=>b.classList.toggle('active', b.dataset.mode===mode));
+  document.getElementById('authTitle').textContent = mode==='login' ? 'Entrar' : 'Criar conta';
+  document.getElementById('authSubmitBtn').textContent = mode==='login' ? 'Entrar' : 'Criar conta';
+  hideAuthError();
+}
+function showAuthError(msg){
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideAuthError(){ document.getElementById('authError').classList.remove('show'); }
+
+function traduzErroFirebase(err){
+  const map = {
+    'auth/invalid-email': 'E-mail inválido.',
+    'auth/user-not-found': 'Não existe conta com esse e-mail.',
+    'auth/wrong-password': 'Senha incorreta.',
+    'auth/invalid-credential': 'E-mail ou senha incorretos.',
+    'auth/email-already-in-use': 'Já existe uma conta com esse e-mail. Tente entrar.',
+    'auth/weak-password': 'A senha precisa ter pelo menos 6 caracteres.',
+    'auth/missing-password': 'Digite sua senha.',
+    'auth/too-many-requests': 'Muitas tentativas. Aguarde um pouco e tente de novo.'
+  };
+  return map[err.code] || 'Não foi possível continuar. Tente novamente.';
+}
+
+async function submitAuth(){
+  hideAuthError();
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if(!email || !password){ showAuthError('Preencha e-mail e senha.'); return; }
+  try{
+    if(authMode==='login'){
+      await auth.signInWithEmailAndPassword(email, password);
+    } else {
+      await auth.createUserWithEmailAndPassword(email, password);
+    }
+  }catch(err){
+    showAuthError(traduzErroFirebase(err));
+  }
+}
+
+async function sendMagicLink(){
+  hideAuthError();
+  const email = document.getElementById('authEmail').value.trim();
+  if(!email){ showAuthError('Digite seu e-mail para receber o link.'); return; }
+  const actionCodeSettings = { url: window.location.href.split('?')[0], handleCodeInApp: true };
+  try{
+    await auth.sendSignInLinkToEmail(email, actionCodeSettings);
+    localStorage.setItem('cotaflow_emailForSignIn', email);
+    showAuthError('');
+    document.getElementById('authError').classList.remove('show');
+    showToast('Link enviado! Confira seu e-mail.');
+  }catch(err){
+    showAuthError(traduzErroFirebase(err));
+  }
+}
+
+async function checkMagicLinkCompletion(){
+  if(auth.isSignInWithEmailLink(window.location.href)){
+    let email = localStorage.getItem('cotaflow_emailForSignIn');
+    if(!email){ email = window.prompt('Confirme seu e-mail para concluir o login:'); }
+    if(email){
+      try{
+        await auth.signInWithEmailLink(email, window.location.href);
+        localStorage.removeItem('cotaflow_emailForSignIn');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }catch(err){
+        showAuthError(traduzErroFirebase(err));
+      }
+    }
+  }
+}
+
+function logout(){
+  if(!confirm('Sair da sua conta?')) return;
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(async (user) => {
+  currentUser = user;
+  if(user){
+    document.getElementById('authScreen').classList.add('hide');
+    document.getElementById('appRoot').style.display = '';
+    document.getElementById('authUserBadge').style.display = 'flex';
+    document.getElementById('authUserEmail').textContent = user.email;
+    document.getElementById('authAvatarLetter').textContent = (user.email||'?').charAt(0).toUpperCase();
+    await loadState();
+  } else {
+    document.getElementById('authScreen').classList.remove('hide');
+    document.getElementById('appRoot').style.display = 'none';
+    document.getElementById('authUserBadge').style.display = 'none';
+  }
+});
+checkMagicLinkCompletion();
+
+/* ============================================================
+   PERSISTÊNCIA (Firestore — um documento por usuário logado)
+   ============================================================ */
+function userDocRef(){ return db.collection('users').doc(currentUser.uid); }
 
 async function loadState(){
-  try{ const v = lsGet('sales'); sales = v ? JSON.parse(v) : []; }catch(e){ sales = []; }
-  try{ const v = lsGet('schedules'); if(v) schedules = JSON.parse(v); }catch(e){}
-  try{ const v = lsGet('brandConfig'); if(v) brandConfig = JSON.parse(v); }catch(e){}
-  try{ const v = lsGet('receipts'); receipts = v ? JSON.parse(v) : {}; }catch(e){ receipts = {}; }
+  try{
+    const snap = await userDocRef().get();
+    const data = snap.exists ? snap.data() : {};
+    sales = data.sales ? JSON.parse(data.sales) : [];
+    if(data.schedules) schedules = JSON.parse(data.schedules);
+    if(data.brandConfig) brandConfig = JSON.parse(data.brandConfig);
+    receipts = data.receipts ? JSON.parse(data.receipts) : {};
+  }catch(e){
+    showToast('Erro ao carregar dados da nuvem');
+    sales = []; receipts = {};
+  }
   migrateLegacyData();
   renderAll();
+  renderConfigCards();
 }
 // Compatibilidade com versões antigas que usavam 'Chevrolet'/'Fiat' como chave direta
 function migrateLegacyData(){
@@ -612,10 +820,19 @@ function migrateLegacyData(){
     sales.forEach(s=>{ if(map[s.marca]) s.marca = map[s.marca]; });
   }
 }
-async function saveSales(){ if(!lsSet('sales', JSON.stringify(sales))) showToast('Erro ao salvar — verifique o espaço do navegador'); }
-async function saveSchedulesState(){ lsSet('schedules', JSON.stringify(schedules)); }
-async function saveBrandConfig(){ lsSet('brandConfig', JSON.stringify(brandConfig)); }
-async function saveReceipts(){ lsSet('receipts', JSON.stringify(receipts)); }
+async function saveSales(){
+  try{ await userDocRef().set({sales: JSON.stringify(sales)}, {merge:true}); }
+  catch(e){ showToast('Erro ao salvar na nuvem'); }
+}
+async function saveSchedulesState(){
+  try{ await userDocRef().set({schedules: JSON.stringify(schedules)}, {merge:true}); }catch(e){}
+}
+async function saveBrandConfig(){
+  try{ await userDocRef().set({brandConfig: JSON.stringify(brandConfig)}, {merge:true}); }catch(e){}
+}
+async function saveReceipts(){
+  try{ await userDocRef().set({receipts: JSON.stringify(receipts)}, {merge:true}); }catch(e){}
+}
 
 /* ============================================================
    CÁLCULO DE PARCELAS
@@ -1115,9 +1332,8 @@ function renderAll(){
    INIT
    ============================================================ */
 setGreeting();
-loadState().then(()=>{
-  renderConfigCards();
-});
+// loadState() agora é chamado automaticamente pelo onAuthStateChanged
+// assim que o usuário faz login (ver bloco FIREBASE acima).
 </script>
 </body>
 </html>
