@@ -6,7 +6,7 @@
 <title>CotaFlow — Controle de Comissões</title>
 
 <!-- Ícone da aba / atalho na tela inicial -->
-<link rel="icon" type="image/png" href="icon.png">
+<link rel="icon" type="image/png" href="icon-512.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1E3A8A">
@@ -19,10 +19,10 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="CotaFlow — Controle de Comissões">
 <meta property="og:description" content="Controle de comissões parceladas por marca, direto do celular.">
-<meta property="og:image" content="https://cotaflow.github.io/app/icon.png">
+<meta property="og:image" content="https://cotaflow.github.io/app/icon-512.png">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="CotaFlow — Controle de Comissões">
-<meta name="twitter:image" content="https://cotaflow.github.io/app/icon.png">
+<meta name="twitter:image" content="https://cotaflow.github.io/app/icon-512.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -86,11 +86,11 @@
   }
   .brandmark{
     width:30px; height:30px; border-radius:9px;
-    background:linear-gradient(160deg, var(--primary), var(--primary-2));
     display:flex; align-items:center; justify-content:center;
     flex-shrink:0;
+    overflow:hidden;
   }
-  .brandmark svg{ width:17px; height:17px; }
+  .brandmark img{ width:100%; height:100%; object-fit:contain; display:block; }
   .brandname{ font-size:15.5px; font-weight:800; letter-spacing:-0.02em; color:var(--ink); }
   .brandname span{ color:var(--primary); }
 
@@ -487,7 +487,7 @@
   <div class="auth-box">
     <div class="auth-logo">
       <div class="brandmark">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M4 15c2.5 0 3-3 5.5-3s3 3 5.5 3 3-6 5.5-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="7.2" r="1.6" fill="#fff"/></svg>
+        <img src="logo.png" alt="CotaFlow">
       </div>
       <div class="brandname">Cota<span>Flow</span></div>
     </div>
@@ -518,7 +518,7 @@
 
 <div class="brandbar">
   <div class="brandmark">
-    <svg viewBox="0 0 24 24" fill="none"><path d="M4 15c2.5 0 3-3 5.5-3s3 3 5.5 3 3-6 5.5-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="7.2" r="1.6" fill="#fff"/></svg>
+    <img src="logo.png" alt="CotaFlow">
   </div>
   <div class="brandname">Cota<span>Flow</span></div>
 </div>
