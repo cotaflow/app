@@ -29,6 +29,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root{
     --bg:#F5F6F9;
@@ -442,12 +445,45 @@
     display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800;
   }
   #authUserBadge button{ border:none; background:none; color:var(--ink-faint); cursor:pointer; font-size:11px; font-weight:700; }
+
+  /* ---------- loading ---------- */
+  #loadingScreen{
+    position:fixed; inset:0; z-index:2000;
+    background:var(--bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:14px;
+  }
+  #loadingScreen.hide{ display:none; }
+  .spinner{
+    width:34px; height:34px; border-radius:50%;
+    border:3px solid var(--border); border-top-color:var(--primary);
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  #loadingScreen .txt{ font-size:13px; color:var(--ink-soft); font-weight:600; }
+
+  #appLoading{
+    position:absolute; inset:0; background:var(--bg); z-index:40;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+  }
+  #appLoading.hide{ display:none; }
+
+  .forgot-link{
+    display:block; text-align:right; font-size:11.5px; font-weight:600; color:var(--primary);
+    cursor:pointer; margin:-6px 0 14px;
+  }
 </style>
 </head>
 <body>
 
+<!-- ===================== TELA DE CARREGAMENTO ===================== -->
+<div id="loadingScreen">
+  <div class="spinner"></div>
+  <div class="txt">Carregando…</div>
+</div>
+
 <!-- ===================== TELA DE LOGIN ===================== -->
-<div id="authScreen">
+<div id="authScreen" class="hide">
   <div class="auth-box">
     <div class="auth-logo">
       <div class="brandmark">
@@ -456,24 +492,20 @@
       <div class="brandname">Cota<span>Flow</span></div>
     </div>
     <div class="auth-title" id="authTitle">Entrar</div>
-    <div class="auth-sub">Cada colega tem seus próprios dados, salvos na nuvem.</div>
-
-    <div class="auth-tabs">
-      <button type="button" class="active" data-mode="login" onclick="setAuthMode('login')">Entrar</button>
-      <button type="button" data-mode="signup" onclick="setAuthMode('signup')">Criar conta</button>
-    </div>
+    <div class="auth-sub">Acesso liberado por convite. Use o e-mail e senha que você recebeu.</div>
 
     <div class="auth-error" id="authError"></div>
 
     <div class="field"><label>E-mail</label><input type="email" id="authEmail" placeholder="voce@email.com" autocomplete="email"></div>
     <div class="field"><label>Senha</label><input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password"></div>
+    <span class="forgot-link" onclick="forgotPassword()">Esqueci minha senha</span>
 
     <button class="btn primary" id="authSubmitBtn" onclick="submitAuth()">Entrar</button>
 
     <div class="auth-divider"><div class="line"></div><span>ou</span><div class="line"></div></div>
 
     <button class="btn ghost" onclick="sendMagicLink()">✉ Receber link mágico por e-mail</button>
-    <div class="auth-magic-info">Sem senha: enviamos um link no seu e-mail, é só tocar nele pra entrar.</div>
+    <div class="auth-magic-info">Só funciona se seu acesso já tiver sido liberado por um administrador.</div>
   </div>
 </div>
 
@@ -492,7 +524,9 @@
 </div>
 
 <div id="appRoot" style="display:none;">
+<div id="appLoading"><div class="spinner"></div><div class="txt">Carregando seus dados…</div></div>
 <header class="app">
+
   <div class="eyebrow" id="eyebrow">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.8L18 9l-4.4 1.2L12 15l-1.6-4.8L6 9l4.4-1.2z"/></svg>
     Painel de comissões
@@ -576,6 +610,12 @@
 
   <!-- ===================== CONFIG ===================== -->
   <section class="view" id="view-config">
+    <div class="section-title"><h2>Seu perfil</h2></div>
+    <div class="card">
+      <div class="field"><label>Seu nome</label><input type="text" id="profileName" placeholder="Como podemos te chamar?"></div>
+      <button class="btn" onclick="saveProfileName()">Salvar nome</button>
+    </div>
+
     <div class="section-title"><h2>Marcas e regras</h2></div>
     <div id="configBrand-brand1"></div>
     <div id="configBrand-brand2"></div>
@@ -585,6 +625,16 @@
       começando no mês seguinte à venda. Alterar aqui não muda vendas já lançadas.
     </p>
     <button class="btn" onclick="saveSchedules()">Salvar regras</button>
+
+    <div class="section-title" style="margin-top:22px;"><h2>Relatórios</h2></div>
+    <div class="card">
+      <p style="font-size:12px; color:var(--ink-soft); font-weight:500; line-height:1.5; margin-bottom:14px;">
+        Baixe suas vendas e parcelas em uma planilha ou PDF — útil pra prestação de contas,
+        conferência ou mandar pro contador.
+      </p>
+      <button class="btn ghost" onclick="exportExcel()" style="margin-bottom:8px;">📊 Baixar Excel (.xlsx)</button>
+      <button class="btn ghost" onclick="exportPDF()">📄 Baixar PDF</button>
+    </div>
 
     <div class="section-title" style="margin-top:22px;"><h2>Backup</h2></div>
     <div class="card">
@@ -599,6 +649,14 @@
       <input type="file" accept="application/json" id="importFile" style="display:none" onchange="handleImport(this)">
       <div class="hint2" id="backupInfo" style="margin-top:10px; text-align:center;"></div>
     </div>
+  </section>
+
+  <!-- ===================== EQUIPE (admin) ===================== -->
+  <section class="view" id="view-equipe">
+    <div class="section-title"><h2>Equipe</h2><span class="hint" id="equipeCount"></span></div>
+    <button class="btn ghost" onclick="loadTeamData()" style="margin-bottom:14px;">↻ Atualizar</button>
+    <div class="card" id="equipeTotalCard" style="background:var(--primary); color:#fff; box-shadow:none;"></div>
+    <div id="equipeList"></div>
   </section>
 
 </main>
@@ -619,6 +677,10 @@
   <button class="tab-btn" data-tab="config" onclick="switchTab('config')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3H9.8l-.4 2.5a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.5h4.4l.4-2.5a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.6c.07-.4.1-.8.1-1.2z"/></svg>
     Regras
+  </button>
+  <button class="tab-btn" data-tab="equipe" onclick="switchTab('equipe')" id="navEquipe" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Equipe
   </button>
 </nav>
 
@@ -689,6 +751,7 @@ let brandConfig = {
 };
 let receipts = {};
 let manualAdjustment = 0;
+let userName = '';
 let currentBrand = 'brand1';
 let currentFilter = 'todas';
 
@@ -707,9 +770,10 @@ function tagHtml(marcaKey, extraStyle){
   return `<span class="tag" style="background:${hexToRgba(b.color,0.12)}; color:${b.color}; ${extraStyle||''}">${icon}${b.name}</span>`;
 }
 
-function setGreeting(){
+function setGreeting(name){
   const h = new Date().getHours();
-  document.getElementById('greeting').textContent = h < 12 ? 'Bom dia' : (h < 18 ? 'Boa tarde' : 'Boa noite');
+  const saudacao = h < 12 ? 'Bom dia' : (h < 18 ? 'Boa tarde' : 'Boa noite');
+  document.getElementById('greeting').textContent = name ? `${saudacao}, ${name}` : saudacao;
 }
 
 /* ============================================================
@@ -727,15 +791,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 let currentUser = null;
-let authMode = 'login';
 
-function setAuthMode(mode){
-  authMode = mode;
-  document.querySelectorAll('.auth-tabs button').forEach(b=>b.classList.toggle('active', b.dataset.mode===mode));
-  document.getElementById('authTitle').textContent = mode==='login' ? 'Entrar' : 'Criar conta';
-  document.getElementById('authSubmitBtn').textContent = mode==='login' ? 'Entrar' : 'Criar conta';
-  hideAuthError();
-}
 function showAuthError(msg){
   const el = document.getElementById('authError');
   el.textContent = msg;
@@ -746,7 +802,7 @@ function hideAuthError(){ document.getElementById('authError').classList.remove(
 function traduzErroFirebase(err){
   const map = {
     'auth/invalid-email': 'E-mail inválido.',
-    'auth/user-not-found': 'Não existe conta com esse e-mail.',
+    'auth/user-not-found': 'Não existe conta com esse e-mail. Peça ao administrador para liberar seu acesso.',
     'auth/wrong-password': 'Senha incorreta.',
     'auth/invalid-credential': 'E-mail ou senha incorretos.',
     'auth/email-already-in-use': 'Já existe uma conta com esse e-mail. Tente entrar.',
@@ -757,17 +813,28 @@ function traduzErroFirebase(err){
   return map[err.code] || 'Não foi possível continuar. Tente novamente.';
 }
 
+// Acesso é só por convite: ninguém cria conta sozinho pela tela.
+// O administrador cadastra o e-mail de cada colega no painel do Firebase
+// (Authentication → Users → Add user), e a pessoa só faz login aqui.
 async function submitAuth(){
   hideAuthError();
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
   if(!email || !password){ showAuthError('Preencha e-mail e senha.'); return; }
   try{
-    if(authMode==='login'){
-      await auth.signInWithEmailAndPassword(email, password);
-    } else {
-      await auth.createUserWithEmailAndPassword(email, password);
-    }
+    await auth.signInWithEmailAndPassword(email, password);
+  }catch(err){
+    showAuthError(traduzErroFirebase(err));
+  }
+}
+
+async function forgotPassword(){
+  hideAuthError();
+  const email = document.getElementById('authEmail').value.trim();
+  if(!email){ showAuthError('Digite seu e-mail acima primeiro, depois toque em "Esqueci minha senha".'); return; }
+  try{
+    await auth.sendPasswordResetEmail(email);
+    showToast('E-mail de redefinição enviado');
   }catch(err){
     showAuthError(traduzErroFirebase(err));
   }
@@ -777,12 +844,17 @@ async function sendMagicLink(){
   hideAuthError();
   const email = document.getElementById('authEmail').value.trim();
   if(!email){ showAuthError('Digite seu e-mail para receber o link.'); return; }
-  const actionCodeSettings = { url: window.location.href.split('?')[0], handleCodeInApp: true };
   try{
+    // Só envia o link se esse e-mail já tiver uma conta liberada pelo administrador —
+    // isso impede que qualquer pessoa crie acesso sozinha pelo link mágico.
+    const methods = await auth.fetchSignInMethodsForEmail(email);
+    if(methods.length === 0){
+      showAuthError('Esse e-mail ainda não tem acesso liberado. Peça ao administrador.');
+      return;
+    }
+    const actionCodeSettings = { url: window.location.href.split('?')[0], handleCodeInApp: true };
     await auth.sendSignInLinkToEmail(email, actionCodeSettings);
     localStorage.setItem('cotaflow_emailForSignIn', email);
-    showAuthError('');
-    document.getElementById('authError').classList.remove('show');
     showToast('Link enviado! Confira seu e-mail.');
   }catch(err){
     showAuthError(traduzErroFirebase(err));
@@ -810,22 +882,100 @@ function logout(){
   auth.signOut();
 }
 
+let firstAuthCheck = true;
+let isAdminUser = false;
+
 auth.onAuthStateChanged(async (user) => {
   currentUser = user;
+  document.getElementById('loadingScreen').classList.add('hide');
   if(user){
     document.getElementById('authScreen').classList.add('hide');
     document.getElementById('appRoot').style.display = '';
+    document.getElementById('appLoading').classList.remove('hide');
     document.getElementById('authUserBadge').style.display = 'flex';
     document.getElementById('authUserEmail').textContent = user.email;
     document.getElementById('authAvatarLetter').textContent = (user.email||'?').charAt(0).toUpperCase();
     await loadState();
+    try{ await userDocRef().set({email: user.email}, {merge:true}); }catch(e){}
+    await checkAdmin();
+    document.getElementById('appLoading').classList.add('hide');
   } else {
     document.getElementById('authScreen').classList.remove('hide');
     document.getElementById('appRoot').style.display = 'none';
     document.getElementById('authUserBadge').style.display = 'none';
+    isAdminUser = false;
+    document.getElementById('navEquipe').style.display = 'none';
   }
+  firstAuthCheck = false;
 });
 checkMagicLinkCompletion();
+
+async function checkAdmin(){
+  try{
+    const snap = await db.collection('admins').doc(currentUser.uid).get();
+    isAdminUser = snap.exists;
+  }catch(e){ isAdminUser = false; }
+  document.getElementById('navEquipe').style.display = isAdminUser ? 'flex' : 'none';
+  if(isAdminUser) loadTeamData();
+}
+
+async function loadTeamData(){
+  if(!isAdminUser) return;
+  const listEl = document.getElementById('equipeList');
+  listEl.innerHTML = emptyState('Carregando…', 'Buscando dados da equipe.');
+  try{
+    const snap = await db.collection('users').get();
+    const rows = [];
+    let grandPrevisto = 0, grandRecebido = 0, grandPendente = 0;
+
+    snap.forEach(doc=>{
+      const data = doc.data();
+      const uSales = data.sales ? JSON.parse(data.sales) : [];
+      const uSchedules = data.schedules ? JSON.parse(data.schedules) : schedules;
+      const uReceipts = data.receipts ? JSON.parse(data.receipts) : {};
+      const uAdjust = typeof data.manualAdjustment === 'number' ? data.manualAdjustment : 0;
+      const insts = getInstallments(uSales, uSchedules, uReceipts);
+      const previsto = insts.reduce((a,i)=>a+i.valorPrevisto,0);
+      const recebido = insts.filter(i=>i.status==='Recebida').reduce((a,i)=>a+(i.valorRecebido||0),0) + uAdjust;
+      const pendente = insts.filter(i=>i.status!=='Recebida').reduce((a,i)=>a+i.valorPrevisto,0);
+      grandPrevisto += previsto; grandRecebido += recebido; grandPendente += pendente;
+      rows.push({ email: data.email || doc.id, salesCount: uSales.length, previsto, recebido, pendente });
+    });
+
+    rows.sort((a,b)=> b.previsto - a.previsto);
+    document.getElementById('equipeCount').textContent = `${rows.length} pessoa(s)`;
+
+    document.getElementById('equipeTotalCard').innerHTML = `
+      <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; opacity:.85;">Total da equipe</div>
+      <div style="font-size:24px; font-weight:800; margin-top:6px;">${fmtMoney(grandPrevisto)}</div>
+      <div style="font-size:12px; margin-top:8px; opacity:.9;">Recebido ${fmtMoney(grandRecebido)} · Pendente ${fmtMoney(grandPendente)}</div>
+    `;
+
+    if(rows.length === 0){
+      listEl.innerHTML = emptyState('Ninguém ainda', 'Nenhum colega lançou vendas até agora.');
+      return;
+    }
+    listEl.innerHTML = rows.map(r=>`
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:700; font-size:14px;">${r.email}</div>
+            <div style="font-size:11.5px; color:var(--ink-soft); margin-top:2px;">${r.salesCount} venda(s)</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="num" style="font-weight:800; font-size:15px; color:var(--primary);">${fmtMoney(r.previsto)}</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:14px; margin-top:10px; font-size:11.5px; color:var(--ink-soft);">
+          <span>Recebido <b class="num" style="color:var(--good);">${fmtMoney(r.recebido)}</b></span>
+          <span>Pendente <b class="num" style="color:var(--ink);">${fmtMoney(r.pendente)}</b></span>
+        </div>
+      </div>
+    `).join('');
+  }catch(e){
+    listEl.innerHTML = emptyState('Erro ao carregar', 'Verifique se as regras do Firestore liberam leitura para administradores.');
+  }
+}
 
 /* ============================================================
    PERSISTÊNCIA (Firestore — um documento por usuário logado)
@@ -841,13 +991,18 @@ async function loadState(){
     if(data.brandConfig) brandConfig = JSON.parse(data.brandConfig);
     receipts = data.receipts ? JSON.parse(data.receipts) : {};
     manualAdjustment = typeof data.manualAdjustment === 'number' ? data.manualAdjustment : 0;
+    userName = data.name || (currentUser.email ? currentUser.email.split('@')[0] : '');
   }catch(e){
     showToast('Erro ao carregar dados da nuvem');
     sales = []; receipts = {};
+    userName = currentUser && currentUser.email ? currentUser.email.split('@')[0] : '';
   }
   migrateLegacyData();
   renderAll();
   renderConfigCards();
+  setGreeting(userName);
+  const profileInput = document.getElementById('profileName');
+  if(profileInput) profileInput.value = userName;
 }
 // Compatibilidade com versões antigas que usavam 'Chevrolet'/'Fiat' como chave direta
 function migrateLegacyData(){
@@ -878,6 +1033,13 @@ async function saveReceipts(){
 async function saveManualAdjustment(){
   try{ await userDocRef().set({manualAdjustment}, {merge:true}); }catch(e){}
 }
+async function saveProfileName(){
+  const name = document.getElementById('profileName').value.trim();
+  userName = name;
+  try{ await userDocRef().set({name}, {merge:true}); }catch(e){}
+  setGreeting(userName);
+  showToast('Nome salvo');
+}
 
 /* ============================================================
    CÁLCULO DE PARCELAS
@@ -891,13 +1053,16 @@ function todayIso(){
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-function getInstallments(){
+function getInstallments(salesArg, schedulesArg, receiptsArg){
+  const _sales = salesArg || sales;
+  const _schedules = schedulesArg || schedules;
+  const _receipts = receiptsArg || receipts;
   const out = [];
-  sales.forEach(s => {
-    const pct = schedules[s.marca] || [0.005,0.005,0.005,0.005];
+  _sales.forEach(s => {
+    const pct = _schedules[s.marca] || [0.005,0.005,0.005,0.005];
     for(let i=0;i<4;i++){
       const key = `${s.id}_${i}`;
-      const rec = receipts[key];
+      const rec = _receipts[key];
       const valorPrevisto = s.valor * pct[i];
       const venc = dueDate(s.data, i);
       const status = rec && rec.status === 'Recebido' ? 'Recebida' : (venc < todayIso() ? 'Atrasada' : 'Pendente');
@@ -1217,6 +1382,86 @@ function handleImport(input){
   };
   reader.readAsText(file);
   input.value = '';
+}
+
+/* ============================================================
+   RELATÓRIOS (Excel / PDF)
+   ============================================================ */
+function exportExcel(){
+  if(typeof XLSX === 'undefined'){ showToast('Erro ao carregar gerador de Excel'); return; }
+  const insts = getInstallments();
+
+  const vendasRows = sales.map(s=>{
+    const pct = schedules[s.marca] || [0,0,0,0];
+    const comissaoTotal = pct.reduce((a,b)=>a+b,0) * s.valor;
+    return {
+      'Marca': (brandConfig[s.marca]||{}).name || s.marca,
+      'Cliente': s.cliente,
+      'Data da Venda': fmtDate(s.data),
+      'Valor da Venda (R$)': s.valor,
+      'Comissão Total (R$)': Number(comissaoTotal.toFixed(2))
+    };
+  });
+
+  const parcelasRows = insts.map(i=>({
+    'Marca': (brandConfig[i.marca]||{}).name || i.marca,
+    'Cliente': i.cliente,
+    'Parcela': `${i.idx+1}/4`,
+    'Valor Previsto (R$)': Number(i.valorPrevisto.toFixed(2)),
+    'Vencimento': fmtDate(i.venc),
+    'Status': i.status,
+    'Data Recebimento': i.dataRecebimento ? fmtDate(i.dataRecebimento) : '',
+    'Valor Recebido (R$)': i.valorRecebido != null ? Number(i.valorRecebido.toFixed(2)) : ''
+  }));
+
+  const wb = XLSX.utils.book_new();
+  const wsVendas = XLSX.utils.json_to_sheet(vendasRows);
+  const wsParcelas = XLSX.utils.json_to_sheet(parcelasRows);
+  XLSX.utils.book_append_sheet(wb, wsVendas, 'Vendas');
+  XLSX.utils.book_append_sheet(wb, wsParcelas, 'Parcelas');
+  XLSX.writeFile(wb, `cotaflow-relatorio-${todayIso()}.xlsx`);
+  showToast('Excel baixado');
+}
+
+function exportPDF(){
+  if(typeof window.jspdf === 'undefined'){ showToast('Erro ao carregar gerador de PDF'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const insts = getInstallments();
+  const totalPrevisto = insts.reduce((a,i)=>a+i.valorPrevisto,0);
+  const totalRecebido = insts.filter(i=>i.status==='Recebida').reduce((a,i)=>a+(i.valorRecebido||0),0) + manualAdjustment;
+  const totalPendente = insts.filter(i=>i.status!=='Recebida').reduce((a,i)=>a+i.valorPrevisto,0);
+
+  doc.setFontSize(16);
+  doc.text('CotaFlow — Relatório de Comissões', 14, 18);
+  doc.setFontSize(10);
+  doc.setTextColor(120);
+  doc.text(`Gerado em ${fmtDate(todayIso())} · ${currentUser ? currentUser.email : ''}`, 14, 25);
+
+  doc.setFontSize(11);
+  doc.setTextColor(20);
+  doc.text(`Previsto total: ${fmtMoney(totalPrevisto)}`, 14, 35);
+  doc.text(`Já recebido: ${fmtMoney(totalRecebido)}`, 14, 41);
+  doc.text(`Pendente: ${fmtMoney(totalPendente)}`, 14, 47);
+
+  doc.autoTable({
+    startY: 54,
+    head: [['Marca','Cliente','Parc.','Previsto','Vencimento','Status','Recebido']],
+    body: insts.map(i=>[
+      (brandConfig[i.marca]||{}).name || i.marca,
+      i.cliente,
+      `${i.idx+1}/4`,
+      fmtMoney(i.valorPrevisto),
+      fmtDate(i.venc),
+      i.status,
+      i.valorRecebido != null ? fmtMoney(i.valorRecebido) : '-'
+    ]),
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [30,58,138] }
+  });
+
+  doc.save(`cotaflow-relatorio-${todayIso()}.pdf`);
+  showToast('PDF baixado');
 }
 
 /* ============================================================
