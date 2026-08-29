@@ -474,8 +474,24 @@
   #authUserBadge .av{
     width:22px; height:22px; border-radius:50%; background:var(--primary-btn); color:#fff;
     display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800;
+    overflow:hidden; flex-shrink:0;
   }
+  #authUserBadge .av img{ width:100%; height:100%; object-fit:cover; }
   #authUserBadge button{ border:none; background:none; color:var(--ink-faint); cursor:pointer; font-size:11px; font-weight:700; }
+
+  /* ---------- perfil ---------- */
+  .avatar-upload{
+    width:76px; height:76px; border-radius:50%; margin:0 auto 16px;
+    background:var(--bg-2); border:1.5px dashed var(--border);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; position:relative;
+  }
+  .avatar-upload img{ width:100%; height:100%; object-fit:cover; }
+  .avatar-upload svg{ width:26px; height:26px; stroke:var(--ink-faint); }
+  .avatar-upload .edit-badge{
+    position:absolute; bottom:0; right:0; width:24px; height:24px; border-radius:50%;
+    background:var(--primary-btn); display:flex; align-items:center; justify-content:center; border:2px solid var(--card);
+  }
+  .avatar-upload .edit-badge svg{ width:12px; height:12px; stroke:#fff; }
 
   /* ---------- loading ---------- */
   #loadingScreen{
@@ -503,6 +519,22 @@
     display:block; text-align:right; font-size:11.5px; font-weight:600; color:var(--primary);
     cursor:pointer; margin:-6px 0 14px;
   }
+
+  /* ---------- trial ---------- */
+  #trialBanner{
+    display:none; align-items:center; justify-content:center; gap:10px;
+    background:var(--gold, #B8862E); background:linear-gradient(90deg, var(--primary-btn), var(--primary));
+    color:#fff; font-size:12.5px; font-weight:700; padding:9px 14px; text-align:center;
+  }
+  #trialBanner a{ color:#fff; text-decoration:underline; flex-shrink:0; }
+  #trialExpiredScreen{
+    position:fixed; inset:0; z-index:1500;
+    background:linear-gradient(180deg, var(--primary-soft) 0%, var(--bg) 60%);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  #trialExpiredScreen.hide{ display:none; }
+  #trialExpiredScreen .auth-box{ text-align:center; }
+  #trialExpiredScreen .auth-logo{ justify-content:center; }
 </style>
 </head>
 <body>
@@ -523,27 +555,34 @@
       <div class="brandname">Cota<span>Flow</span></div>
     </div>
     <div class="auth-title" id="authTitle">Entrar</div>
-    <div class="auth-sub">Acesso liberado por convite. Use o e-mail e senha que você recebeu.</div>
+    <div class="auth-sub">Teste grátis por 7 dias usando suas próprias vendas.</div>
+
+    <div class="auth-tabs">
+      <button type="button" class="active" data-mode="login" onclick="setAuthMode('login')">Entrar</button>
+      <button type="button" data-mode="signup" onclick="setAuthMode('signup')">Criar conta grátis</button>
+    </div>
 
     <div class="auth-error" id="authError"></div>
 
     <div class="field"><label>E-mail</label><input type="email" id="authEmail" placeholder="voce@email.com" autocomplete="email"></div>
     <div class="field"><label>Senha</label><input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password"></div>
-    <span class="forgot-link" onclick="forgotPassword()">Esqueci minha senha</span>
+    <span class="forgot-link" id="forgotLink" onclick="forgotPassword()">Esqueci minha senha</span>
 
     <button class="btn primary" id="authSubmitBtn" onclick="submitAuth()">Entrar</button>
 
     <div class="auth-divider"><div class="line"></div><span>ou</span><div class="line"></div></div>
 
     <button class="btn ghost" onclick="sendMagicLink()">✉ Receber link mágico por e-mail</button>
-    <div class="auth-magic-info">Só funciona se seu acesso já tiver sido liberado por um administrador.</div>
+    <div class="auth-magic-info">Sem senha: enviamos um link no seu e-mail, é só tocar nele pra entrar.</div>
   </div>
 </div>
 
 <!-- Badge do usuário logado -->
 <div id="authUserBadge" style="display:none;">
-  <div class="av" id="authAvatarLetter">?</div>
-  <span id="authUserEmail"></span>
+  <div onclick="openProfileModal()" style="display:flex; align-items:center; gap:7px; cursor:pointer;">
+    <div class="av" id="authAvatarLetter">?</div>
+    <span id="authUserEmail"></span>
+  </div>
   <button onclick="logout()">Sair</button>
 </div>
 
@@ -556,6 +595,26 @@
 
 <div id="appRoot" style="display:none;">
 <div id="appLoading"><div class="spinner"></div><div class="txt">Carregando seus dados…</div></div>
+
+<div id="trialBanner" style="display:none;">
+  <span id="trialBannerText">Teste grátis: faltam 7 dias</span>
+  <a href="https://cotaflow.github.io/#planos" target="_blank">Ver planos</a>
+</div>
+
+<!-- ===================== TRIAL EXPIRADO (bloqueio) ===================== -->
+<div id="trialExpiredScreen" class="hide">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="brandmark"><img src="data:image/png;base64,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" alt="CotaFlow"></div>
+      <div class="brandname">Cota<span>Flow</span></div>
+    </div>
+    <div class="auth-title">Seu teste grátis acabou</div>
+    <div class="auth-sub">Foram 7 dias usando o CotaFlow. Para continuar acompanhando suas comissões, escolha um plano.</div>
+    <a class="btn primary" href="https://cotaflow.github.io/#planos" target="_blank" style="display:flex; margin-top:18px;">Ver planos</a>
+    <button class="btn ghost" onclick="logout()" style="margin-top:10px;">Sair</button>
+  </div>
+</div>
+
 <header class="app">
 
   <div class="eyebrow" id="eyebrow">
@@ -576,9 +635,14 @@
         <div class="big num" id="heroPendente">R$ 0</div>
         <div class="note" id="heroNote">nenhuma parcela pendente</div>
       </div>
-      <div class="hero-icon">
+      <div class="hero-icon" onclick="openAdjustModal('recebido')" style="cursor:pointer;">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       </div>
+    </div>
+    <div id="adiantamentoNote" style="display:none; margin-top:10px; padding-top:10px; border-top:1px dashed var(--border);">
+      <span class="note" style="cursor:pointer; color:var(--primary); font-weight:700;" onclick="openAdjustModal('adiantamento')">
+        ↓ <span id="adiantamentoNoteText"></span> · editar
+      </span>
     </div>
   </div>
 
@@ -642,14 +706,20 @@
   <!-- ===================== CONFIG ===================== -->
   <section class="view" id="view-config">
     <div class="section-title"><h2>Seu perfil</h2></div>
-    <div class="card">
-      <div class="field"><label>Seu nome</label><input type="text" id="profileName" placeholder="Como podemos te chamar?"></div>
-      <button class="btn" onclick="saveProfileName()">Salvar nome</button>
+    <div class="card qa-row" onclick="openProfileModal()" style="cursor:pointer;">
+      <div class="qa-icon" id="profileCardAvatar">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+      </div>
+      <div class="qa-body">
+        <div class="t" id="profileCardName">Meu perfil</div>
+        <div class="s" id="profileCardSub">Toque para editar nome, foto e telefone</div>
+      </div>
+      <div class="qa-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></div>
     </div>
 
     <div class="section-title"><h2>Marcas e regras</h2></div>
-    <div id="configBrand-brand1"></div>
-    <div id="configBrand-brand2"></div>
+    <div id="configBrandsContainer"></div>
+    <button class="btn ghost" onclick="addBrand()" style="margin-bottom:18px;">+ Adicionar marca / administradora</button>
 
     <p style="font-size:12px; color:var(--ink-soft); padding:0 4px; font-weight:500; line-height:1.5;">
       Os valores são o percentual (%) da venda pago em cada parcela. Vencimento fixo: dia 10,
@@ -735,18 +805,63 @@
 </div>
 
 <!-- ===== MODAL: ajuste manual do total recebido ===== -->
+<!-- ===== MODAL: editar perfil ===== -->
+<div class="overlay" id="profileOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3>Meu perfil</h3><button class="close-x" onclick="closeModal('profileOverlay')">✕</button></div>
+
+    <div class="avatar-upload" onclick="document.getElementById('profilePhotoFile').click()">
+      <svg id="profileAvatarIcon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+      <img id="profileAvatarImg" style="display:none;">
+      <div class="edit-badge"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+    </div>
+    <input type="file" accept="image/*" id="profilePhotoFile" style="display:none" onchange="handleProfilePhotoUpload(this)">
+    <div style="text-align:center; margin-bottom:18px; display:none;" id="profileRemovePhoto">
+      <span class="rm-btn" onclick="removeProfilePhoto()">Remover foto</span>
+    </div>
+
+    <div class="field"><label>Nome</label><input type="text" id="profileName" placeholder="Como podemos te chamar?"></div>
+    <div class="field"><label>E-mail</label><input type="text" id="profileEmail" disabled style="opacity:.65;"></div>
+    <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="profilePhone" placeholder="(11) 99999-9999"></div>
+
+    <button class="btn primary" onclick="saveProfile()">Salvar perfil</button>
+  </div>
+</div>
+
 <div class="overlay" id="adjustOverlay">
   <div class="modal">
-    <div class="modal-head"><h3>Ajustar total recebido</h3><button class="close-x" onclick="closeModal('adjustOverlay')">✕</button></div>
-    <p style="font-size:12px; color:var(--ink-soft); font-weight:500; line-height:1.5; margin-bottom:14px;">
-      Calculado pelas parcelas marcadas como recebidas: <b class="num" id="adjustComputed">R$ 0</b>.
-      Se o valor que caiu na conta foi diferente (ex: recebeu um pouco a mais ou a menos), digite
-      abaixo o total real — o app guarda a diferença como um ajuste manual.
-    </p>
-    <div class="field"><label>Total realmente recebido (R$)</label><input type="number" step="0.01" id="adjustValor"></div>
-    <button class="btn primary" onclick="saveAdjustment()">Salvar total</button>
-    <div style="height:8px"></div>
-    <button class="btn ghost" onclick="clearAdjustment()">Remover ajuste manual</button>
+    <div class="modal-head"><h3>Ajustes de recebimento</h3><button class="close-x" onclick="closeModal('adjustOverlay')">✕</button></div>
+
+    <div class="auth-tabs" style="margin-bottom:18px;">
+      <button type="button" class="active" data-tab="recebido" onclick="setAdjustTab('recebido')">Recebido</button>
+      <button type="button" data-tab="adiantamento" onclick="setAdjustTab('adiantamento')">Adiantamentos</button>
+    </div>
+
+    <!-- ABA: RECEBIDO -->
+    <div id="adjustTab-recebido">
+      <p style="font-size:12px; color:var(--ink-soft); font-weight:500; line-height:1.5; margin-bottom:14px;">
+        Calculado pelas parcelas marcadas como recebidas: <b class="num" id="adjustComputed">R$ 0</b>.
+        Se o valor que caiu na conta foi diferente (ex: recebeu um pouco a mais ou a menos), digite
+        abaixo o total real — o app guarda a diferença como um ajuste manual.
+      </p>
+      <div class="field"><label>Total realmente recebido (R$)</label><input type="number" step="0.01" id="adjustValor"></div>
+      <button class="btn primary" onclick="saveAdjustment()">Salvar total</button>
+      <div style="height:8px"></div>
+      <button class="btn ghost" onclick="clearAdjustment()">Remover ajuste manual</button>
+    </div>
+
+    <!-- ABA: ADIANTAMENTOS -->
+    <div id="adjustTab-adiantamento" style="display:none;">
+      <p style="font-size:12px; color:var(--ink-soft); font-weight:500; line-height:1.5; margin-bottom:14px;">
+        Use aqui quando você recebeu um <b>vale ou adiantamento</b> sobre comissões futuras.
+        Esse valor não entra como "recebido" — ele é descontado direto do total que ainda
+        <b>falta receber (pendente)</b>, já que parte dele já está na sua mão.
+      </p>
+      <div class="field"><label>Total adiantado (R$)</label><input type="number" step="0.01" id="adiantamentoValor"></div>
+      <button class="btn primary" onclick="saveAdiantamento()">Salvar adiantamento</button>
+      <div style="height:8px"></div>
+      <button class="btn ghost" onclick="clearAdiantamento()">Remover adiantamento</button>
+    </div>
   </div>
 </div>
 
@@ -768,9 +883,18 @@ let brandConfig = {
 };
 let receipts = {};
 let manualAdjustment = 0;
+let adiantamentos = 0;
 let userName = '';
+let userPhoto = null;
+let userPhone = '';
+let userPlan = 'trial';
+let trialStartedAt = null;
 let currentBrand = 'brand1';
 let currentFilter = 'todas';
+let authMode = 'login';
+let firstAuthCheck = true;
+let isAdminUser = false;
+let currentUser = null;
 
 const fmtMoney = (v) => 'R$ ' + (v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 const fmtDate = (iso) => { if(!iso) return '-'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
@@ -807,7 +931,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-let currentUser = null;
 
 function showAuthError(msg){
   const el = document.getElementById('authError');
@@ -816,13 +939,22 @@ function showAuthError(msg){
 }
 function hideAuthError(){ document.getElementById('authError').classList.remove('show'); }
 
+function setAuthMode(mode){
+  authMode = mode;
+  document.querySelectorAll('.auth-tabs button').forEach(b=>b.classList.toggle('active', b.dataset.mode===mode));
+  document.getElementById('authTitle').textContent = mode==='login' ? 'Entrar' : 'Criar conta grátis';
+  document.getElementById('authSubmitBtn').textContent = mode==='login' ? 'Entrar' : 'Criar conta e começar teste grátis';
+  document.getElementById('forgotLink').style.display = mode==='login' ? 'block' : 'none';
+  hideAuthError();
+}
+
 function traduzErroFirebase(err){
   const map = {
     'auth/invalid-email': 'E-mail inválido.',
-    'auth/user-not-found': 'Não existe conta com esse e-mail. Peça ao administrador para liberar seu acesso.',
+    'auth/user-not-found': 'Não existe conta com esse e-mail. Toque em "Criar conta grátis".',
     'auth/wrong-password': 'Senha incorreta.',
     'auth/invalid-credential': 'E-mail ou senha incorretos.',
-    'auth/email-already-in-use': 'Já existe uma conta com esse e-mail. Tente entrar.',
+    'auth/email-already-in-use': 'Já existe uma conta com esse e-mail. Toque em "Entrar".',
     'auth/weak-password': 'A senha precisa ter pelo menos 6 caracteres.',
     'auth/missing-password': 'Digite sua senha.',
     'auth/too-many-requests': 'Muitas tentativas. Aguarde um pouco e tente de novo.'
@@ -830,16 +962,17 @@ function traduzErroFirebase(err){
   return map[err.code] || 'Não foi possível continuar. Tente novamente.';
 }
 
-// Acesso é só por convite: ninguém cria conta sozinho pela tela.
-// O administrador cadastra o e-mail de cada colega no painel do Firebase
-// (Authentication → Users → Add user), e a pessoa só faz login aqui.
 async function submitAuth(){
   hideAuthError();
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
   if(!email || !password){ showAuthError('Preencha e-mail e senha.'); return; }
   try{
-    await auth.signInWithEmailAndPassword(email, password);
+    if(authMode==='login'){
+      await auth.signInWithEmailAndPassword(email, password);
+    } else {
+      await auth.createUserWithEmailAndPassword(email, password);
+    }
   }catch(err){
     showAuthError(traduzErroFirebase(err));
   }
@@ -862,13 +995,6 @@ async function sendMagicLink(){
   const email = document.getElementById('authEmail').value.trim();
   if(!email){ showAuthError('Digite seu e-mail para receber o link.'); return; }
   try{
-    // Só envia o link se esse e-mail já tiver uma conta liberada pelo administrador —
-    // isso impede que qualquer pessoa crie acesso sozinha pelo link mágico.
-    const methods = await auth.fetchSignInMethodsForEmail(email);
-    if(methods.length === 0){
-      showAuthError('Esse e-mail ainda não tem acesso liberado. Peça ao administrador.');
-      return;
-    }
     const actionCodeSettings = { url: window.location.href.split('?')[0], handleCodeInApp: true };
     await auth.sendSignInLinkToEmail(email, actionCodeSettings);
     localStorage.setItem('cotaflow_emailForSignIn', email);
@@ -876,6 +1002,7 @@ async function sendMagicLink(){
   }catch(err){
     showAuthError(traduzErroFirebase(err));
   }
+
 }
 
 async function checkMagicLinkCompletion(){
@@ -899,9 +1026,6 @@ function logout(){
   auth.signOut();
 }
 
-let firstAuthCheck = true;
-let isAdminUser = false;
-
 auth.onAuthStateChanged(async (user) => {
   currentUser = user;
   document.getElementById('loadingScreen').classList.add('hide');
@@ -915,17 +1039,57 @@ auth.onAuthStateChanged(async (user) => {
     await loadState();
     try{ await userDocRef().set({email: user.email}, {merge:true}); }catch(e){}
     await checkAdmin();
+    checkTrialGate();
     document.getElementById('appLoading').classList.add('hide');
   } else {
     document.getElementById('authScreen').classList.remove('hide');
     document.getElementById('appRoot').style.display = 'none';
     document.getElementById('authUserBadge').style.display = 'none';
+    document.getElementById('trialBanner').style.display = 'none';
+    document.getElementById('trialExpiredScreen').classList.add('hide');
     isAdminUser = false;
     document.getElementById('navEquipe').style.display = 'none';
   }
   firstAuthCheck = false;
 });
 checkMagicLinkCompletion();
+
+function daysLeftInTrial(){
+  if(!trialStartedAt) return null;
+  const [y,m,d] = trialStartedAt.split('-').map(Number);
+  const start = new Date(y, m-1, d);
+  const now = new Date();
+  const diffDays = Math.floor((now - start) / (1000*60*60*24));
+  return 7 - diffDays;
+}
+
+function checkTrialGate(){
+  const banner = document.getElementById('trialBanner');
+  const blocker = document.getElementById('trialExpiredScreen');
+  // isAdminUser e quem já tem plano pago (definido manualmente por você no Firestore)
+  // nunca são bloqueados, independente da data.
+  if(isAdminUser || (userPlan && userPlan !== 'trial')){
+    banner.style.display = 'none';
+    blocker.classList.add('hide');
+    return;
+  }
+  const daysLeft = daysLeftInTrial();
+  if(daysLeft === null){
+    banner.style.display = 'none';
+    blocker.classList.add('hide');
+    return;
+  }
+  if(daysLeft <= 0){
+    banner.style.display = 'none';
+    blocker.classList.remove('hide');
+  } else {
+    blocker.classList.add('hide');
+    banner.style.display = 'flex';
+    document.getElementById('trialBannerText').textContent = daysLeft === 1
+      ? 'Teste grátis: falta 1 dia'
+      : `Teste grátis: faltam ${daysLeft} dias`;
+  }
+}
 
 async function checkAdmin(){
   try{
@@ -1000,26 +1164,38 @@ async function loadTeamData(){
 function userDocRef(){ return db.collection('users').doc(currentUser.uid); }
 
 async function loadState(){
+  let isBrandNewDoc = false;
   try{
     const snap = await userDocRef().get();
+    isBrandNewDoc = !snap.exists;
     const data = snap.exists ? snap.data() : {};
     sales = data.sales ? JSON.parse(data.sales) : [];
     if(data.schedules) schedules = JSON.parse(data.schedules);
     if(data.brandConfig) brandConfig = JSON.parse(data.brandConfig);
     receipts = data.receipts ? JSON.parse(data.receipts) : {};
     manualAdjustment = typeof data.manualAdjustment === 'number' ? data.manualAdjustment : 0;
+    adiantamentos = typeof data.adiantamentos === 'number' ? data.adiantamentos : 0;
     userName = data.name || (currentUser.email ? currentUser.email.split('@')[0] : '');
+    userPhoto = data.photo || null;
+    userPhone = data.phone || '';
+    userPlan = data.plan || 'trial';
+    trialStartedAt = data.trialStartedAt || null;
   }catch(e){
     showToast('Erro ao carregar dados da nuvem');
     sales = []; receipts = {};
     userName = currentUser && currentUser.email ? currentUser.email.split('@')[0] : '';
   }
+  // Primeiro acesso desta conta: começa a contar o teste grátis de 7 dias a partir de agora.
+  if(isBrandNewDoc && !trialStartedAt){
+    trialStartedAt = todayIso();
+    userPlan = 'trial';
+    try{ await userDocRef().set({ trialStartedAt, plan: userPlan }, {merge:true}); }catch(e){}
+  }
   migrateLegacyData();
   renderAll();
   renderConfigCards();
   setGreeting(userName);
-  const profileInput = document.getElementById('profileName');
-  if(profileInput) profileInput.value = userName;
+  renderAvatar();
 }
 // Compatibilidade com versões antigas que usavam 'Chevrolet'/'Fiat' como chave direta
 function migrateLegacyData(){
@@ -1050,12 +1226,70 @@ async function saveReceipts(){
 async function saveManualAdjustment(){
   try{ await userDocRef().set({manualAdjustment}, {merge:true}); }catch(e){}
 }
-async function saveProfileName(){
-  const name = document.getElementById('profileName').value.trim();
-  userName = name;
-  try{ await userDocRef().set({name}, {merge:true}); }catch(e){}
+async function saveAdiantamentos(){
+  try{ await userDocRef().set({adiantamentos}, {merge:true}); }catch(e){}
+}
+function renderAvatar(){
+  const initial = (userName || (currentUser && currentUser.email) || '?').charAt(0).toUpperCase();
+  const headerAv = document.getElementById('authAvatarLetter');
+  headerAv.innerHTML = userPhoto ? `<img src="${userPhoto}">` : initial;
+
+  const cardAv = document.getElementById('profileCardAvatar');
+  if(cardAv){
+    cardAv.innerHTML = userPhoto
+      ? `<img src="${userPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`;
+  }
+  const cardName = document.getElementById('profileCardName');
+  if(cardName) cardName.textContent = userName || 'Meu perfil';
+  const cardSub = document.getElementById('profileCardSub');
+  if(cardSub) cardSub.textContent = userPhone ? userPhone : 'Toque para editar nome, foto e telefone';
+}
+
+function openProfileModal(){
+  document.getElementById('profileName').value = userName;
+  document.getElementById('profileEmail').value = currentUser ? currentUser.email : '';
+  document.getElementById('profilePhone').value = userPhone;
+  const img = document.getElementById('profileAvatarImg');
+  const icon = document.getElementById('profileAvatarIcon');
+  const rmRow = document.getElementById('profileRemovePhoto');
+  if(userPhoto){ img.src = userPhoto; img.style.display='block'; icon.style.display='none'; rmRow.style.display='block'; }
+  else { img.style.display='none'; icon.style.display='block'; rmRow.style.display='none'; }
+  document.getElementById('profileOverlay').classList.add('show');
+}
+function handleProfilePhotoUpload(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    userPhoto = e.target.result;
+    try{ await userDocRef().set({photo: userPhoto}, {merge:true}); }catch(e){}
+    renderAvatar();
+    const img = document.getElementById('profileAvatarImg');
+    const icon = document.getElementById('profileAvatarIcon');
+    img.src = userPhoto; img.style.display='block'; icon.style.display='none';
+    document.getElementById('profileRemovePhoto').style.display='block';
+    showToast('Foto atualizada');
+  };
+  reader.readAsDataURL(file);
+}
+async function removeProfilePhoto(){
+  userPhoto = null;
+  try{ await userDocRef().set({photo: null}, {merge:true}); }catch(e){}
+  renderAvatar();
+  document.getElementById('profileAvatarImg').style.display='none';
+  document.getElementById('profileAvatarIcon').style.display='block';
+  document.getElementById('profileRemovePhoto').style.display='none';
+  showToast('Foto removida');
+}
+async function saveProfile(){
+  userName = document.getElementById('profileName').value.trim();
+  userPhone = document.getElementById('profilePhone').value.trim();
+  try{ await userDocRef().set({name: userName, phone: userPhone}, {merge:true}); }catch(e){}
   setGreeting(userName);
-  showToast('Nome salvo');
+  renderAvatar();
+  closeModal('profileOverlay');
+  showToast('Perfil salvo');
 }
 
 /* ============================================================
@@ -1236,15 +1470,22 @@ async function undoReceive(){
 }
 
 /* ============================================================
-   AJUSTE MANUAL DO TOTAL RECEBIDO
+   AJUSTES: RECEBIDO (manual) + ADIANTAMENTOS
    ============================================================ */
 function computedRecebidoFromInstallments(){
   return getInstallments().filter(i=>i.status==='Recebida').reduce((a,i)=>a+(i.valorRecebido||0),0);
 }
-function openAdjustModal(){
+function setAdjustTab(tab){
+  document.querySelectorAll('#adjustOverlay .auth-tabs button').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.getElementById('adjustTab-recebido').style.display = tab==='recebido' ? '' : 'none';
+  document.getElementById('adjustTab-adiantamento').style.display = tab==='adiantamento' ? '' : 'none';
+}
+function openAdjustModal(tab){
   const computed = computedRecebidoFromInstallments();
   document.getElementById('adjustComputed').textContent = fmtMoney(computed);
   document.getElementById('adjustValor').value = (computed + manualAdjustment).toFixed(2);
+  document.getElementById('adiantamentoValor').value = adiantamentos.toFixed(2);
+  setAdjustTab(tab || 'recebido');
   document.getElementById('adjustOverlay').classList.add('show');
 }
 async function saveAdjustment(){
@@ -1265,23 +1506,48 @@ async function clearAdjustment(){
   showToast('Ajuste manual removido');
 }
 
+async function saveAdiantamento(){
+  const valor = parseFloat(document.getElementById('adiantamentoValor').value);
+  if(isNaN(valor) || valor < 0){ showToast('Digite um valor válido'); return; }
+  adiantamentos = valor;
+  await saveAdiantamentos();
+  closeModal('adjustOverlay');
+  renderAll();
+  showToast('Adiantamento salvo');
+}
+async function clearAdiantamento(){
+  adiantamentos = 0;
+  await saveAdiantamentos();
+  closeModal('adjustOverlay');
+  renderAll();
+  showToast('Adiantamento removido');
+}
+
 /* ============================================================
    CONFIG / MARCAS / SCHEDULES
    ============================================================ */
 function renderConfigCards(){
-  Object.keys(brandConfig).forEach(key=>{
+  const container = document.getElementById('configBrandsContainer');
+  const keys = Object.keys(brandConfig);
+  container.innerHTML = keys.map(key => `<div id="configBrand-${key}"></div>`).join('');
+
+  keys.forEach(key=>{
     const box = document.getElementById(`configBrand-${key}`);
     const b = brandConfig[key];
     const preview = b.logo
       ? `<img src="${b.logo}">`
       : `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v13H3zM3 7l3-4h12l3 4"/></svg>`;
-    const rmBtn = b.logo ? `<span class="rm-btn" onclick="removeLogo('${key}')">Remover</span>` : '';
+    const rmLogoBtn = b.logo ? `<span class="rm-btn" onclick="removeLogo('${key}')">Remover</span>` : '';
+    const rmBrandBtn = keys.length > 1
+      ? `<span class="rm-btn" onclick="removeBrand('${key}')" style="float:right; margin-top:2px;">Excluir marca</span>`
+      : '';
     box.innerHTML = `
       <div class="card">
+        ${rmBrandBtn}
         <div class="logo-row">
           <div class="logo-preview" onclick="document.getElementById('logoFile-${key}').click()">${preview}</div>
           <div class="logo-actions">
-            <span class="upl-btn" onclick="document.getElementById('logoFile-${key}').click()">Enviar logo</span>${rmBtn}
+            <span class="upl-btn" onclick="document.getElementById('logoFile-${key}').click()">Enviar logo</span>${rmLogoBtn}
             <div class="hint2">PNG ou SVG, fundo transparente de preferência.</div>
           </div>
           <input type="file" accept="image/*" id="logoFile-${key}" style="display:none" onchange="handleLogoUpload('${key}', this)">
@@ -1307,6 +1573,31 @@ function renderConfigCards(){
       updateScheduleTotal(key);
     });
   });
+}
+
+async function addBrand(){
+  const key = 'brand_' + Date.now();
+  brandConfig[key] = { name: 'Nova marca', color: '#5B6470', logo: null };
+  schedules[key] = [0.005, 0.005, 0.005, 0.005];
+  await saveBrandConfig();
+  await saveSchedulesState();
+  renderConfigCards();
+  showToast('Marca adicionada — edite o nome e salve as regras');
+}
+async function removeBrand(key){
+  const temSales = sales.some(s => s.marca === key);
+  const nome = (brandConfig[key] || {}).name || key;
+  const aviso = temSales
+    ? `Existem vendas lançadas com "${nome}". Elas continuarão salvas, mas essa marca some dos filtros e da tela de nova venda. Continuar?`
+    : `Excluir a marca "${nome}"?`;
+  if(!confirm(aviso)) return;
+  delete brandConfig[key];
+  delete schedules[key];
+  await saveBrandConfig();
+  await saveSchedulesState();
+  renderConfigCards();
+  renderAll();
+  showToast('Marca removida');
 }
 function handleLogoUpload(key, input){
   const file = input.files[0];
@@ -1405,7 +1696,8 @@ function exportPDF(){
   const insts = getInstallments();
   const totalPrevisto = insts.reduce((a,i)=>a+i.valorPrevisto,0);
   const totalRecebido = insts.filter(i=>i.status==='Recebida').reduce((a,i)=>a+(i.valorRecebido||0),0) + manualAdjustment;
-  const totalPendente = insts.filter(i=>i.status!=='Recebida').reduce((a,i)=>a+i.valorPrevisto,0);
+  const totalPendenteBruto = insts.filter(i=>i.status!=='Recebida').reduce((a,i)=>a+i.valorPrevisto,0);
+  const totalPendente = Math.max(0, totalPendenteBruto - adiantamentos);
 
   doc.setFontSize(16);
   doc.text('CotaFlow — Relatório de Comissões', 14, 18);
@@ -1417,7 +1709,7 @@ function exportPDF(){
   doc.setTextColor(20);
   doc.text(`Previsto total: ${fmtMoney(totalPrevisto)}`, 14, 35);
   doc.text(`Já recebido: ${fmtMoney(totalRecebido)}`, 14, 41);
-  doc.text(`Pendente: ${fmtMoney(totalPendente)}`, 14, 47);
+  doc.text(`Pendente: ${fmtMoney(totalPendente)}${adiantamentos>0 ? ' (já descontado adiantamento de '+fmtMoney(adiantamentos)+')' : ''}`, 14, 47);
 
   doc.autoTable({
     startY: 54,
@@ -1530,7 +1822,8 @@ function renderDashboard(){
   const totalPrevisto = insts.reduce((a,i)=>a+i.valorPrevisto,0);
   const totalRecebidoComputado = insts.filter(i=>i.status==='Recebida').reduce((a,i)=>a+(i.valorRecebido||0),0);
   const totalRecebido = totalRecebidoComputado + manualAdjustment;
-  const totalPendente = insts.filter(i=>i.status!=='Recebida').reduce((a,i)=>a+i.valorPrevisto,0);
+  const totalPendenteBruto = insts.filter(i=>i.status!=='Recebida').reduce((a,i)=>a+i.valorPrevisto,0);
+  const totalPendente = Math.max(0, totalPendenteBruto - adiantamentos);
 
   document.getElementById('kpiPrevisto').textContent = fmtMoney(totalPrevisto);
   document.getElementById('kpiRecebido').textContent = fmtMoney(totalRecebido);
@@ -1538,6 +1831,13 @@ function renderDashboard(){
     ? `ajuste manual: ${manualAdjustment>0?'+':''}${fmtMoney(manualAdjustment)}`
     : '';
   document.getElementById('heroPendente').textContent = fmtMoney(totalPendente);
+  const adiantNote = document.getElementById('adiantamentoNote');
+  if(adiantamentos > 0){
+    adiantNote.style.display = 'block';
+    document.getElementById('adiantamentoNoteText').textContent = `${fmtMoney(adiantamentos)} já adiantados`;
+  } else {
+    adiantNote.style.display = 'none';
+  }
   document.getElementById('headerSub').textContent = sales.length
     ? `Você tem ${sales.length} ${sales.length===1?'venda lançada':'vendas lançadas'} e ${insts.length} parcelas no total.`
     : `Centralize aqui o controle das comissões de ${brandConfig.brand1.name} e ${brandConfig.brand2.name}, parcela por parcela.`;
