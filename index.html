@@ -155,8 +155,9 @@
     display:inline-flex; align-items:center; gap:8px;
     background:var(--ink-fixed); color:#fff; border:none; border-radius:100px;
     padding:12px 18px; font-size:13.5px; font-weight:700; cursor:pointer;
-    margin-top:14px; font-family:'Inter',sans-serif;
+    margin-top:14px; font-family:'Inter',sans-serif; transition:transform .13s ease;
   }
+  .hero-cta:active{ transform:scale(0.95); }
   .hero-cta svg{ width:14px; height:14px; }
 
   .hero-balance{
@@ -173,8 +174,9 @@
   .hero-balance .note{ font-size:12px; color:var(--ink-soft); margin-top:3px; font-weight:500;}
   .hero-icon{
     width:32px; height:32px; border-radius:9px; background:var(--primary-soft);
-    display:flex; align-items:center; justify-content:center;
+    display:flex; align-items:center; justify-content:center; transition:transform .15s ease;
   }
+  .hero-icon:active{ transform:scale(0.85) rotate(-6deg); }
   .hero-icon svg{ width:16px; height:16px; stroke:var(--primary); }
 
   .kpi-row{
@@ -188,9 +190,11 @@
     border:1px solid var(--border);
     border-radius:var(--r-md);
     padding:11px 12px;
+    transition:transform .13s ease;
   }
+  .kpi.recebido:active{ transform:scale(0.96); }
   .kpi .lbl{ font-size:10.5px; color:var(--ink-soft); font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
-  .kpi .val{ font-size:14.5px; font-weight:800; margin-top:5px; letter-spacing:-0.01em;}
+  .kpi .val{ font-size:14.5px; font-weight:800; margin-top:5px; letter-spacing:-0.01em; transition:color .2s ease;}
   .kpi.previsto .val{ color:var(--ink); }
   .kpi.recebido .val{ color:var(--good); }
   .kpi.pendente .val{ color:var(--primary); }
@@ -200,17 +204,22 @@
     display:flex; align-items:center; gap:13px;
     background:var(--card); border:1px solid var(--border); border-radius:var(--r-lg);
     padding:14px; margin-bottom:10px; cursor:pointer; box-shadow:var(--shadow);
+    transition:transform .13s ease, box-shadow .13s ease;
   }
+  .qa-row:active{ transform:scale(0.98); box-shadow:none; }
   .qa-icon{
     width:42px; height:42px; border-radius:12px; background:var(--primary-soft);
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1);
   }
+  .qa-row:active .qa-icon{ transform:scale(0.88) rotate(-4deg); }
   .qa-icon svg{ width:20px; height:20px; stroke:var(--primary); }
   .qa-body{ flex:1; }
   .qa-body .t{ font-weight:700; font-size:14.5px; letter-spacing:-0.01em; }
   .qa-body .s{ font-size:12px; color:var(--ink-soft); margin-top:2px; font-weight:500; line-height:1.4;}
-  .qa-arrow{ color:var(--ink-faint); flex-shrink:0; }
+  .qa-arrow{ color:var(--ink-faint); flex-shrink:0; transition:transform .15s ease; }
   .qa-arrow svg{ width:16px; height:16px; }
+  .qa-row:active .qa-arrow{ transform:translate(2px,-2px); }
 
   /* ---------- tabs ---------- */
   nav.tabs{
@@ -236,7 +245,11 @@
     align-items:center;
     gap:4px;
     cursor:pointer;
+    transition:color .15s ease;
   }
+  nav.tabs button svg{ transition:transform .25s cubic-bezier(.34,1.56,.64,1); }
+  nav.tabs button.active svg{ transform:translateY(-2px) scale(1.08); }
+  nav.tabs button:active svg{ transform:scale(0.85); }
   nav.tabs button.active{ color:var(--ink); }
   nav.tabs button.active svg{ stroke:var(--primary); }
   nav.tabs svg{ width:21px; height:21px; stroke:var(--ink-faint); transition:stroke .15s; }
@@ -245,6 +258,8 @@
   section.view{ display:none; animation:fade .18s ease; }
   section.view.active{ display:block; }
   @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+  @keyframes stagger-in{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;} }
+  .stagger-item{ animation:stagger-in .35s cubic-bezier(.22,1,.36,1) backwards; }
 
   .section-title{
     display:flex; align-items:baseline; justify-content:space-between;
@@ -298,7 +313,7 @@
     color:var(--ink);
     font-weight:500;
   }
-  .field input:focus, .field select:focus{ outline:none; border-color:var(--primary); background:#fff; }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--primary); background:var(--card); }
   .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
   .brand-toggle{ display:flex; gap:8px; }
@@ -313,8 +328,9 @@
     display:inline-flex; align-items:center; justify-content:center; gap:6px;
     background:var(--ink-fixed); color:#fff; border:none; border-radius:var(--r-sm);
     padding:13px 16px; font-size:14.5px; font-weight:700; cursor:pointer; width:100%;
-    font-family:'Inter',sans-serif;
+    font-family:'Inter',sans-serif; transition:transform .13s ease, opacity .13s ease, box-shadow .13s ease;
   }
+  .btn:active{ transform:scale(0.97); opacity:0.92; }
   .btn.primary{ background:var(--primary-btn); }
   .btn.ghost{ background:transparent; color:var(--ink-soft); border:1.5px solid var(--border); }
   .btn.small{ width:auto; padding:8px 14px; font-size:12.5px; }
@@ -328,14 +344,17 @@
   .venda-valor{ font-size:12.5px; margin-top:10px; color:var(--ink-soft); font-weight:500;}
   .venda-valor b{ color:var(--ink); font-size:14.5px; font-weight:700;}
   .venda-actions{ display:flex; gap:4px; }
-  .icon-btn{ background:var(--border); border:none; cursor:pointer; padding:6px 9px; color:var(--ink-soft); border-radius:8px; font-size:13px;}
+  .icon-btn{ background:var(--border); border:none; cursor:pointer; padding:6px 9px; color:var(--ink-soft); border-radius:8px; font-size:13px; transition:transform .13s ease; }
+  .icon-btn:active{ transform:scale(0.88); }
 
   /* ---------- parcel stubs ---------- */
   .stub-row{ display:flex; gap:6px; margin-top:14px; }
   .stub{
     flex:1; border:1.5px solid var(--border); border-radius:12px; padding:8px 4px;
-    text-align:center; background:var(--bg-2);
+    text-align:center; background:var(--bg-2); cursor:pointer;
+    transition:transform .13s ease;
   }
+  .stub:active{ transform:scale(0.93); }
   .stub .n{ font-size:9px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.05em; font-weight:700;}
   .stub .v{ font-size:11.5px; font-weight:700; margin-top:3px;}
   .stub .d{ font-size:9.5px; color:var(--ink-soft); margin-top:1px; font-weight:500;}
@@ -350,13 +369,17 @@
   .chip{
     white-space:nowrap; font-size:12.5px; padding:8px 13px; border-radius:100px;
     border:1.5px solid var(--border); background:var(--card); color:var(--ink-soft); cursor:pointer; font-weight:600;
+    transition:transform .13s ease, background .15s ease, color .15s ease, border-color .15s ease;
   }
+  .chip:active{ transform:scale(0.94); }
   .chip.active{ background:var(--ink-fixed); color:#fff; border-color:var(--ink-fixed);}
 
   .parcela-item{
     display:flex; align-items:center; justify-content:space-between;
-    padding:13px 2px; border-bottom:1px solid var(--border);
+    padding:13px 2px; border-bottom:1px solid var(--border); cursor:pointer;
+    transition:background .15s ease, transform .1s ease;
   }
+  .parcela-item:active{ background:var(--bg-2); transform:scale(0.99); }
   .parcela-item:last-child{ border-bottom:none; }
   .parcela-left .cli{ font-weight:700; font-size:13.5px; }
   .parcela-left .meta{ font-size:11.5px; color:var(--ink-soft); margin-top:3px; display:flex; gap:6px; align-items:center; font-weight:500;}
@@ -407,11 +430,13 @@
   /* ---------- modal ---------- */
   .overlay{
     position:fixed; inset:0; background:rgba(16,20,26,.45);
-    display:none; align-items:flex-end; z-index:100;
+    display:flex; align-items:flex-end; z-index:100;
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .22s ease;
   }
-  .overlay.show{ display:flex; }
+  .overlay.show{ opacity:1; visibility:visible; pointer-events:auto; }
   .modal{
-    background:#fff; width:100%; border-radius:24px 24px 0 0; padding:22px 18px 26px;
+    background:var(--card); width:100%; border-radius:24px 24px 0 0; padding:22px 18px 26px;
     max-height:86vh; overflow-y:auto; animation:up .2s ease;
   }
   @keyframes up{ from{transform:translateY(30px); opacity:0;} to{transform:none; opacity:1;} }
@@ -453,7 +478,7 @@
     flex:1; border:none; background:none; padding:9px; border-radius:9px;
     font-size:13px; font-weight:700; color:var(--ink-soft); cursor:pointer; font-family:'Inter',sans-serif;
   }
-  .auth-tabs button.active{ background:#fff; color:var(--ink); box-shadow:var(--shadow); }
+  .auth-tabs button.active{ background:var(--card); color:var(--ink); box-shadow:var(--shadow); }
   .auth-error{
     background:var(--bad-soft); color:var(--bad); font-size:12px; font-weight:600;
     padding:9px 12px; border-radius:10px; margin-bottom:12px; display:none;
@@ -467,17 +492,18 @@
   }
   #authUserBadge{
     position:fixed; top:14px; right:14px; z-index:60;
-    background:var(--card); border:1px solid var(--border); border-radius:100px;
-    padding:6px 12px 6px 6px; display:flex; align-items:center; gap:7px; box-shadow:var(--shadow);
-    font-size:11.5px; font-weight:600; color:var(--ink-soft);
+    width:40px; height:40px; border-radius:50%;
+    background:var(--card); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+    cursor:pointer; padding:0; transition:transform .15s ease;
   }
+  #authUserBadge:active{ transform:scale(0.92); }
   #authUserBadge .av{
-    width:22px; height:22px; border-radius:50%; background:var(--primary-btn); color:#fff;
-    display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800;
+    width:34px; height:34px; border-radius:50%; background:var(--primary-btn); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800;
     overflow:hidden; flex-shrink:0;
   }
   #authUserBadge .av img{ width:100%; height:100%; object-fit:cover; }
-  #authUserBadge button{ border:none; background:none; color:var(--ink-faint); cursor:pointer; font-size:11px; font-weight:700; }
 
   /* ---------- perfil ---------- */
   .avatar-upload{
@@ -578,12 +604,8 @@
 </div>
 
 <!-- Badge do usuário logado -->
-<div id="authUserBadge" style="display:none;">
-  <div onclick="openProfileModal()" style="display:flex; align-items:center; gap:7px; cursor:pointer;">
-    <div class="av" id="authAvatarLetter">?</div>
-    <span id="authUserEmail"></span>
-  </div>
-  <button onclick="logout()">Sair</button>
+<div id="authUserBadge" style="display:none;" onclick="openProfileModal()">
+  <div class="av" id="authAvatarLetter">?</div>
 </div>
 
 <div class="brandbar">
@@ -825,6 +847,8 @@
     <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="profilePhone" placeholder="(11) 99999-9999"></div>
 
     <button class="btn primary" onclick="saveProfile()">Salvar perfil</button>
+    <div style="height:8px"></div>
+    <button class="btn ghost" onclick="logout()">Sair da conta</button>
   </div>
 </div>
 
@@ -899,6 +923,26 @@ let currentUser = null;
 const fmtMoney = (v) => 'R$ ' + (v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 const fmtDate = (iso) => { if(!iso) return '-'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
 const monthLabel = (key) => { const [y,m]=key.split('-'); const dt=new Date(y, m-1, 1); return dt.toLocaleDateString('pt-BR',{month:'short', year:'2-digit'}).replace('.',''); };
+
+// Anima um valor em R$ subindo/descendo suavemente até o novo total —
+// dá vida aos números do painel em vez de trocarem de forma seca.
+const _animatedValues = {};
+function animateMoney(el, target){
+  if(!el) return;
+  const from = _animatedValues[el.id] != null ? _animatedValues[el.id] : target;
+  _animatedValues[el.id] = target;
+  if(Math.abs(target - from) < 0.005){ el.textContent = fmtMoney(target); return; }
+  const dur = 500;
+  const start = performance.now();
+  function tick(now){
+    const p = Math.min(1, (now - start) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmtMoney(from + (target - from) * eased);
+    if(p < 1) requestAnimationFrame(tick);
+    else el.textContent = fmtMoney(target);
+  }
+  requestAnimationFrame(tick);
+}
 
 function hexToRgba(hex, alpha){
   const h = hex.replace('#','');
@@ -1034,7 +1078,6 @@ auth.onAuthStateChanged(async (user) => {
     document.getElementById('appRoot').style.display = '';
     document.getElementById('appLoading').classList.remove('hide');
     document.getElementById('authUserBadge').style.display = 'flex';
-    document.getElementById('authUserEmail').textContent = user.email;
     document.getElementById('authAvatarLetter').textContent = (user.email||'?').charAt(0).toUpperCase();
     await loadState();
     try{ await userDocRef().set({email: user.email}, {merge:true}); }catch(e){}
@@ -1255,7 +1298,7 @@ function openProfileModal(){
   const rmRow = document.getElementById('profileRemovePhoto');
   if(userPhoto){ img.src = userPhoto; img.style.display='block'; icon.style.display='none'; rmRow.style.display='block'; }
   else { img.style.display='none'; icon.style.display='block'; rmRow.style.display='none'; }
-  document.getElementById('profileOverlay').classList.add('show');
+  showModal('profileOverlay');
 }
 function handleProfilePhotoUpload(input){
   const file = input.files[0];
@@ -1336,6 +1379,17 @@ function switchTab(tab){
   document.getElementById('view-'+tab).classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
 }
+function showModal(id){
+  const overlay = document.getElementById(id);
+  const modal = overlay.querySelector('.modal');
+  overlay.classList.add('show');
+  // reinicia a animação de "subir" toda vez que o modal é aberto de novo
+  if(modal){
+    modal.style.animation = 'none';
+    void modal.offsetHeight;
+    modal.style.animation = '';
+  }
+}
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 function showToast(msg){
   const t = document.getElementById('toast');
@@ -1363,7 +1417,7 @@ function openSaleModal(id){
     document.getElementById('saleValor').value = '';
     selectBrand('brand1');
   }
-  document.getElementById('saleOverlay').classList.add('show');
+  showModal('saleOverlay');
 }
 function renderBrandToggle(){
   const box = document.getElementById('saleBrandToggle');
@@ -1448,7 +1502,7 @@ function openReceiveModal(key){
     </div>`;
   document.getElementById('recData').value = inst.dataRecebimento || todayIso();
   document.getElementById('recValor').value = inst.valorRecebido != null ? inst.valorRecebido : inst.valorPrevisto.toFixed(2);
-  document.getElementById('receiveOverlay').classList.add('show');
+  showModal('receiveOverlay');
 }
 async function confirmReceive(){
   const key = document.getElementById('recKey').value;
@@ -1486,7 +1540,7 @@ function openAdjustModal(tab){
   document.getElementById('adjustValor').value = (computed + manualAdjustment).toFixed(2);
   document.getElementById('adiantamentoValor').value = adiantamentos.toFixed(2);
   setAdjustTab(tab || 'recebido');
-  document.getElementById('adjustOverlay').classList.add('show');
+  showModal('adjustOverlay');
 }
 async function saveAdjustment(){
   const desired = parseFloat(document.getElementById('adjustValor').value);
@@ -1742,7 +1796,7 @@ function renderVendas(){
     return;
   }
   const ordered = [...sales].sort((a,b)=> b.data.localeCompare(a.data));
-  list.innerHTML = ordered.map(s=>{
+  list.innerHTML = ordered.map((s,idx)=>{
     const pct = schedules[s.marca] || [0,0,0,0];
     const insts = getInstallments().filter(i=>i.saleId===s.id);
     const stubs = insts.map(i=>{
@@ -1754,7 +1808,7 @@ function renderVendas(){
       </div>`;
     }).join('');
     const total = pct.reduce((a,b)=>a+b,0)*s.valor;
-    return `<div class="card venda-card">
+    return `<div class="card venda-card stagger-item" style="animation-delay:${Math.min(idx*45,400)}ms">
       <div class="venda-top">
         <div>
           ${tagHtml(s.marca)}
@@ -1796,9 +1850,9 @@ function renderRecebimentos(){
     list.innerHTML = emptyState('Nada por aqui', 'Nenhuma parcela encontrada para este filtro.');
     return;
   }
-  list.innerHTML = insts.map(i=>{
+  list.innerHTML = insts.map((i,idx)=>{
     const pillClass = i.status==='Recebida' ? 'recebida' : (i.status==='Atrasada' ? 'atrasada' : 'pendente');
-    return `<div class="parcela-item" onclick="openReceiveModal('${i.key}')">
+    return `<div class="parcela-item stagger-item" style="animation-delay:${Math.min(idx*35,350)}ms" onclick="openReceiveModal('${i.key}')">
       <div class="parcela-left">
         <div class="cli">${i.cliente}</div>
         <div class="meta">
@@ -1825,12 +1879,12 @@ function renderDashboard(){
   const totalPendenteBruto = insts.filter(i=>i.status!=='Recebida').reduce((a,i)=>a+i.valorPrevisto,0);
   const totalPendente = Math.max(0, totalPendenteBruto - adiantamentos);
 
-  document.getElementById('kpiPrevisto').textContent = fmtMoney(totalPrevisto);
-  document.getElementById('kpiRecebido').textContent = fmtMoney(totalRecebido);
+  animateMoney(document.getElementById('kpiPrevisto'), totalPrevisto);
+  animateMoney(document.getElementById('kpiRecebido'), totalRecebido);
   document.getElementById('kpiAdjustNote').textContent = manualAdjustment !== 0
     ? `ajuste manual: ${manualAdjustment>0?'+':''}${fmtMoney(manualAdjustment)}`
     : '';
-  document.getElementById('heroPendente').textContent = fmtMoney(totalPendente);
+  animateMoney(document.getElementById('heroPendente'), totalPendente);
   const adiantNote = document.getElementById('adiantamentoNote');
   if(adiantamentos > 0){
     adiantNote.style.display = 'block';
