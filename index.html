@@ -255,9 +255,13 @@
   nav.tabs svg{ width:21px; height:21px; stroke:var(--ink-faint); transition:stroke .15s; }
 
   main{ padding:16px; max-width:640px; margin:0 auto; }
-  section.view{ display:none; animation:fade .18s ease; }
+  section.view{ display:none; }
   section.view.active{ display:block; }
   @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+  @keyframes slide-in-r{ from{opacity:0; transform:translateX(16px);} to{opacity:1; transform:none;} }
+  @keyframes slide-in-l{ from{opacity:0; transform:translateX(-16px);} to{opacity:1; transform:none;} }
+  .view.slide-in-r{ animation:slide-in-r .22s cubic-bezier(.22,1,.36,1); }
+  .view.slide-in-l{ animation:slide-in-l .22s cubic-bezier(.22,1,.36,1); }
   @keyframes stagger-in{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;} }
   .stagger-item{ animation:stagger-in .35s cubic-bezier(.22,1,.36,1) backwards; }
 
@@ -456,6 +460,35 @@
     font-size:13px; font-weight:600; z-index:200; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s;
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+
+  /* ---------- comemoração de recebimento ---------- */
+  .celebrate-wrap{
+    position:fixed; inset:0; z-index:3000;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+    pointer-events:none;
+    background:rgba(16,20,26,0);
+    animation:celebrate-bg-in .2s ease forwards;
+  }
+  .celebrate-wrap.out{ animation:celebrate-bg-out .35s ease forwards; }
+  @keyframes celebrate-bg-in{ to{ background:rgba(16,20,26,.28); } }
+  @keyframes celebrate-bg-out{ to{ background:rgba(16,20,26,0); opacity:0; } }
+  .celebrate-circle{
+    width:84px; height:84px; border-radius:50%; background:var(--good);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 12px 32px rgba(27,143,107,.4);
+    animation:celebrate-pop .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  .celebrate-circle svg{ width:38px; height:38px; }
+  @keyframes celebrate-pop{
+    0%{ transform:scale(0); opacity:0; }
+    60%{ transform:scale(1.15); opacity:1; }
+    100%{ transform:scale(1); }
+  }
+  .celebrate-text{
+    background:var(--ink-fixed); color:#fff; padding:9px 18px; border-radius:100px;
+    font-size:14px; font-weight:700; animation:celebrate-text-in .35s ease .1s backwards;
+  }
+  @keyframes celebrate-text-in{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
 
   /* ---------- tela de login ---------- */
   #authScreen{
@@ -918,6 +951,8 @@ let currentFilter = 'todas';
 let authMode = 'login';
 let firstAuthCheck = true;
 let isAdminUser = false;
+const TAB_ORDER = ['dashboard','vendas','recebimentos','config','equipe'];
+let currentTab = 'dashboard';
 let currentUser = null;
 
 const fmtMoney = (v) => 'R$ ' + (v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -1375,9 +1410,19 @@ function getInstallments(salesArg, schedulesArg, receiptsArg){
    NAVEGAÇÃO
    ============================================================ */
 function switchTab(tab){
+  const oldIdx = TAB_ORDER.indexOf(currentTab);
+  const newIdx = TAB_ORDER.indexOf(tab);
+  const goingForward = newIdx >= oldIdx;
+
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById('view-'+tab).classList.add('active');
+  const next = document.getElementById('view-'+tab);
+  next.classList.remove('slide-in-l','slide-in-r');
+  void next.offsetWidth; // força reflow pra reiniciar a animação sempre
+  next.classList.add(goingForward ? 'slide-in-r' : 'slide-in-l');
+  next.classList.add('active');
+
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  currentTab = tab;
 }
 function showModal(id){
   const overlay = document.getElementById(id);
@@ -1395,6 +1440,22 @@ function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+// Pequena comemoração visual quando uma parcela é marcada como recebida —
+// o momento mais gostoso do app merece um efeito.
+function celebrateReceive(valor){
+  const wrap = document.createElement('div');
+  wrap.className = 'celebrate-wrap';
+  wrap.innerHTML = `
+    <div class="celebrate-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <div class="celebrate-text">Recebido ${fmtMoney(valor)}</div>
+  `;
+  document.body.appendChild(wrap);
+  setTimeout(()=>{ wrap.classList.add('out'); }, 900);
+  setTimeout(()=>{ wrap.remove(); }, 1250);
 }
 
 /* ============================================================
@@ -1512,7 +1573,7 @@ async function confirmReceive(){
   await saveReceipts();
   closeModal('receiveOverlay');
   renderAll();
-  showToast('Recebimento registrado');
+  celebrateReceive(valor);
 }
 async function undoReceive(){
   const key = document.getElementById('recKey').value;
