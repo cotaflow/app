@@ -448,7 +448,8 @@
   .modal-head h3{ font-size:17px; font-weight:800; letter-spacing:-0.01em;}
   .close-x{ background:var(--bg); border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; color:var(--ink-soft); font-size:14px;}
 
-  .schedule-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .schedule-grid{ display:flex; flex-wrap:wrap; gap:8px; }
+  .schedule-grid .field{ flex:1 1 68px; min-width:68px; margin-bottom:0; }
   .schedule-grid .field label{ text-align:center; font-size:11px;}
   .schedule-grid input{ text-align:center; padding:9px 4px;}
   .sched-total{ text-align:center; font-size:12px; color:var(--ink-soft); margin-top:8px; font-weight:500;}
@@ -799,6 +800,15 @@
     <button class="btn ghost" onclick="loadTeamData()" style="margin-bottom:14px;">↻ Atualizar</button>
     <div class="card" id="equipeTotalCard" style="background:var(--primary-btn); color:#fff; box-shadow:none;"></div>
     <div id="equipeList"></div>
+
+    <div class="card" style="margin-top:18px;">
+      <h3>ID da sua empresa</h3>
+      <p style="font-size:12px; color:var(--ink-soft); font-weight:500; line-height:1.5; margin-bottom:10px;">
+        Você só vê aqui os colegas vinculados a este ID. Pra adicionar alguém na sua equipe,
+        peça pro administrador do CotaFlow vincular o e-mail dessa pessoa a este código.
+      </p>
+      <div class="field"><input type="text" id="companyIdDisplay" readonly style="font-family:'IBM Plex Mono',monospace; font-size:12px;"></div>
+    </div>
   </section>
 
 </main>
@@ -951,6 +961,7 @@ let currentFilter = 'todas';
 let authMode = 'login';
 let firstAuthCheck = true;
 let isAdminUser = false;
+let companyId = null;
 const TAB_ORDER = ['dashboard','vendas','recebimentos','config','equipe'];
 let currentTab = 'dashboard';
 let currentUser = null;
@@ -1175,6 +1186,8 @@ async function checkAdmin(){
     isAdminUser = snap.exists;
   }catch(e){ isAdminUser = false; }
   document.getElementById('navEquipe').style.display = isAdminUser ? 'flex' : 'none';
+  const cid = document.getElementById('companyIdDisplay');
+  if(cid) cid.value = companyId || '';
   if(isAdminUser) loadTeamData();
 }
 
@@ -1183,7 +1196,7 @@ async function loadTeamData(){
   const listEl = document.getElementById('equipeList');
   listEl.innerHTML = emptyState('Carregando…', 'Buscando dados da equipe.');
   try{
-    const snap = await db.collection('users').get();
+    const snap = await db.collection('users').where('companyId', '==', companyId).get();
     const rows = [];
     let grandPrevisto = 0, grandRecebido = 0, grandPendente = 0;
 
@@ -1258,16 +1271,20 @@ async function loadState(){
     userPhone = data.phone || '';
     userPlan = data.plan || 'trial';
     trialStartedAt = data.trialStartedAt || null;
+    companyId = data.companyId || currentUser.uid;
   }catch(e){
     showToast('Erro ao carregar dados da nuvem');
     sales = []; receipts = {};
     userName = currentUser && currentUser.email ? currentUser.email.split('@')[0] : '';
+    companyId = currentUser.uid;
   }
-  // Primeiro acesso desta conta: começa a contar o teste grátis de 7 dias a partir de agora.
-  if(isBrandNewDoc && !trialStartedAt){
-    trialStartedAt = todayIso();
-    userPlan = 'trial';
-    try{ await userDocRef().set({ trialStartedAt, plan: userPlan }, {merge:true}); }catch(e){}
+  // Primeiro acesso desta conta: começa a contar o teste grátis de 7 dias a partir de agora,
+  // e define a "empresa" dela como sendo ela mesma (solo), a menos que já tenha sido
+  // vinculada manualmente a outra empresa antes do primeiro login.
+  if(isBrandNewDoc){
+    if(!trialStartedAt){ trialStartedAt = todayIso(); userPlan = 'trial'; }
+    if(!companyId) companyId = currentUser.uid;
+    try{ await userDocRef().set({ trialStartedAt, plan: userPlan, companyId }, {merge:true}); }catch(e){}
   }
   migrateLegacyData();
   renderAll();
@@ -1389,7 +1406,8 @@ function getInstallments(salesArg, schedulesArg, receiptsArg){
   const out = [];
   _sales.forEach(s => {
     const pct = _schedules[s.marca] || [0.005,0.005,0.005,0.005];
-    for(let i=0;i<4;i++){
+    const total = pct.length;
+    for(let i=0;i<total;i++){
       const key = `${s.id}_${i}`;
       const rec = _receipts[key];
       const valorPrevisto = s.valor * pct[i];
@@ -1397,7 +1415,7 @@ function getInstallments(salesArg, schedulesArg, receiptsArg){
       const status = rec && rec.status === 'Recebido' ? 'Recebida' : (venc < todayIso() ? 'Atrasada' : 'Pendente');
       out.push({
         key, saleId:s.id, marca:s.marca, cliente:s.cliente, valorVenda:s.valor,
-        idx:i, pct:pct[i], valorPrevisto, venc, status,
+        idx:i, total, pct:pct[i], valorPrevisto, venc, status,
         dataRecebimento: rec ? rec.data : null,
         valorRecebido: rec ? rec.valor : null
       });
@@ -1557,7 +1575,7 @@ function openReceiveModal(key){
       <div>
         ${tagHtml(inst.marca)}
         <div style="font-weight:700; margin-top:7px;">${inst.cliente}</div>
-        <div style="font-size:12px; color:var(--ink-soft); font-weight:500;">Parcela ${inst.idx+1} de 4 · vence ${fmtDate(inst.venc)}</div>
+        <div style="font-size:12px; color:var(--ink-soft); font-weight:500;">Parcela ${inst.idx+1} de ${inst.total} · vence ${fmtDate(inst.venc)}</div>
       </div>
       <div class="num" style="font-weight:800; font-size:16px;">${fmtMoney(inst.valorPrevisto)}</div>
     </div>`;
@@ -1641,6 +1659,10 @@ async function clearAdiantamento(){
 /* ============================================================
    CONFIG / MARCAS / SCHEDULES
    ============================================================ */
+function scheduleInputsHTML(key, pctValues){
+  // pctValues: array de números já em formato "percentual" (ex: 1.00 = 1%), prontos pro atributo value
+  return pctValues.map((v,i)=>`<div class="field"><label>Parc. ${i+1}</label><input type="number" step="0.01" id="sch-${key}-${i}" value="${v}"></div>`).join('');
+}
 function renderConfigCards(){
   const container = document.getElementById('configBrandsContainer');
   const keys = Object.keys(brandConfig);
@@ -1649,6 +1671,8 @@ function renderConfigCards(){
   keys.forEach(key=>{
     const box = document.getElementById(`configBrand-${key}`);
     const b = brandConfig[key];
+    const n = (schedules[key] || [0.005,0.005,0.005,0.005]).length;
+    const pctPercent = (schedules[key] || []).map(v => (v*100).toFixed(2));
     const preview = b.logo
       ? `<img src="${b.logo}">`
       : `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v13H3zM3 7l3-4h12l3 4"/></svg>`;
@@ -1671,23 +1695,36 @@ function renderConfigCards(){
           <div class="field"><label>Nome da marca</label><input type="text" id="brandName-${key}" value="${b.name}"></div>
           <div class="field"><label>Cor de destaque</label><input type="color" id="brandColor-${key}" value="${b.color}" style="padding:4px; height:44px;"></div>
         </div>
-        <div class="schedule-grid">
-          <div class="field"><label>Parc. 1</label><input type="number" step="0.01" id="sch-${key}-0"></div>
-          <div class="field"><label>Parc. 2</label><input type="number" step="0.01" id="sch-${key}-1"></div>
-          <div class="field"><label>Parc. 3</label><input type="number" step="0.01" id="sch-${key}-2"></div>
-          <div class="field"><label>Parc. 4</label><input type="number" step="0.01" id="sch-${key}-3"></div>
+        <div class="field" style="max-width:180px;">
+          <label>Quantidade de parcelas</label>
+          <input type="number" min="1" max="36" id="numParc-${key}" value="${n}" onchange="changeParcelCount('${key}', this.value)">
         </div>
+        <div class="schedule-grid" id="schedule-inputs-${key}">${scheduleInputsHTML(key, pctPercent)}</div>
         <div class="sched-total">Total: <b id="sch-${key}-total">0%</b> por venda</div>
       </div>`;
   });
-  loadScheduleInputs();
-  // listeners dos percentuais (recriados a cada render)
-  document.querySelectorAll('.schedule-grid input').forEach(inp=>{
-    inp.addEventListener('input', ()=>{
-      const key = inp.id.split('-')[1];
-      updateScheduleTotal(key);
-    });
+  keys.forEach(key => attachScheduleListeners(key));
+  keys.forEach(key => updateScheduleTotal(key));
+}
+function attachScheduleListeners(key){
+  const box = document.getElementById(`schedule-inputs-${key}`);
+  if(!box) return;
+  box.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', ()=> updateScheduleTotal(key));
   });
+}
+function changeParcelCount(key, rawValue){
+  let n = parseInt(rawValue);
+  if(isNaN(n) || n < 1) n = 1;
+  if(n > 36) n = 36;
+  const box = document.getElementById(`schedule-inputs-${key}`);
+  const oldValues = Array.from(box.querySelectorAll('input')).map(inp => inp.value || '0.00');
+  const newValues = [];
+  for(let i=0;i<n;i++){ newValues.push(oldValues[i] !== undefined ? oldValues[i] : '0.00'); }
+  box.innerHTML = scheduleInputsHTML(key, newValues);
+  document.getElementById(`numParc-${key}`).value = n;
+  attachScheduleListeners(key);
+  updateScheduleTotal(key);
 }
 
 async function addBrand(){
@@ -1734,24 +1771,17 @@ async function removeLogo(key){
   renderAll();
   showToast('Logo removida');
 }
-function loadScheduleInputs(){
-  Object.keys(schedules).forEach(key=>{
-    (schedules[key]||[0,0,0,0]).forEach((p,i)=>{
-      const el = document.getElementById(`sch-${key}-${i}`);
-      if(el) el.value = (p*100).toFixed(2);
-    });
-    updateScheduleTotal(key);
-  });
-}
 function updateScheduleTotal(key){
+  const box = document.getElementById(`schedule-inputs-${key}`);
   let total = 0;
-  for(let i=0;i<4;i++){ const el = document.getElementById(`sch-${key}-${i}`); total += el ? (parseFloat(el.value)||0) : 0; }
+  if(box) box.querySelectorAll('input').forEach(el => total += parseFloat(el.value)||0);
   const totalEl = document.getElementById(`sch-${key}-total`);
   if(totalEl) totalEl.textContent = total.toFixed(2)+'%';
 }
 async function saveSchedules(){
   Object.keys(brandConfig).forEach(key=>{
-    schedules[key] = [0,1,2,3].map(i => (parseFloat(document.getElementById(`sch-${key}-${i}`).value)||0)/100);
+    const box = document.getElementById(`schedule-inputs-${key}`);
+    schedules[key] = Array.from(box.querySelectorAll('input')).map(inp => (parseFloat(inp.value)||0)/100);
     brandConfig[key].name = document.getElementById(`brandName-${key}`).value.trim() || brandConfig[key].name;
     brandConfig[key].color = document.getElementById(`brandColor-${key}`).value;
   });
@@ -1762,9 +1792,6 @@ async function saveSchedules(){
   showToast('Regras salvas — válidas para novas vendas');
 }
 
-/* ============================================================
-   BACKUP (exportar / restaurar arquivo local)
-   ============================================================ */
 /* ============================================================
    RELATÓRIOS (Excel / PDF)
    ============================================================ */
@@ -1787,7 +1814,7 @@ function exportExcel(){
   const parcelasRows = insts.map(i=>({
     'Marca': (brandConfig[i.marca]||{}).name || i.marca,
     'Cliente': i.cliente,
-    'Parcela': `${i.idx+1}/4`,
+    'Parcela': `${i.idx+1}/${i.total}`,
     'Valor Previsto (R$)': Number(i.valorPrevisto.toFixed(2)),
     'Vencimento': fmtDate(i.venc),
     'Status': i.status,
@@ -1832,7 +1859,7 @@ function exportPDF(){
     body: insts.map(i=>[
       (brandConfig[i.marca]||{}).name || i.marca,
       i.cliente,
-      `${i.idx+1}/4`,
+      `${i.idx+1}/${i.total}`,
       fmtMoney(i.valorPrevisto),
       fmtDate(i.venc),
       i.status,
@@ -1918,7 +1945,7 @@ function renderRecebimentos(){
         <div class="cli">${i.cliente}</div>
         <div class="meta">
           ${tagHtml(i.marca, 'padding:1px 7px;')}
-          Parc. ${i.idx+1}/4 · vence ${fmtDate(i.venc)}
+          Parc. ${i.idx+1}/${i.total} · vence ${fmtDate(i.venc)}
         </div>
       </div>
       <div class="parcela-right">
@@ -2018,7 +2045,7 @@ function renderDashboard(){
       <div class="parcela-item" onclick="openReceiveModal('${i.key}')" style="padding:10px 2px;">
         <div class="parcela-left">
           <div class="cli" style="font-size:13px;">${i.cliente}</div>
-          <div class="meta">${tagHtml(i.marca, 'padding:1px 7px;')}P${i.idx+1}/4 · ${fmtDate(i.venc)}</div>
+          <div class="meta">${tagHtml(i.marca, 'padding:1px 7px;')}P${i.idx+1}/${i.total} · ${fmtDate(i.venc)}</div>
         </div>
         <div class="parcela-right">
           <div class="val num" style="font-size:13px;">${fmtMoney(i.valorPrevisto)}</div>
