@@ -434,7 +434,7 @@
   /* ---------- modal ---------- */
   .overlay{
     position:fixed; inset:0; background:rgba(16,20,26,.45);
-    display:flex; align-items:flex-end; z-index:100;
+    display:flex; align-items:flex-end; z-index:2000;
     opacity:0; visibility:hidden; pointer-events:none;
     transition:opacity .22s ease;
   }
@@ -654,7 +654,7 @@
 
 <div id="trialBanner" style="display:none;">
   <span id="trialBannerText">Teste grátis: faltam 7 dias</span>
-  <a href="https://cotaflow.github.io/#planos" target="_blank">Ver planos</a>
+  <a href="javascript:void(0)" onclick="openPlanosModal()">Ver planos</a>
 </div>
 
 <!-- ===================== TRIAL EXPIRADO (bloqueio) ===================== -->
@@ -666,7 +666,7 @@
     </div>
     <div class="auth-title">Seu teste grátis acabou</div>
     <div class="auth-sub">Foram 7 dias usando o CotaFlow. Para continuar acompanhando suas comissões, escolha um plano.</div>
-    <a class="btn primary" href="https://cotaflow.github.io/#planos" target="_blank" style="display:flex; margin-top:18px;">Ver planos</a>
+    <a class="btn primary" href="javascript:void(0)" onclick="openPlanosModal()" style="display:flex; margin-top:18px;">Ver planos</a>
     <button class="btn ghost" onclick="logout()" style="margin-top:10px;">Sair</button>
   </div>
 </div>
@@ -761,6 +761,16 @@
 
   <!-- ===================== CONFIG ===================== -->
   <section class="view" id="view-config">
+    <div class="section-title"><h2>Meu plano</h2></div>
+    <div class="card qa-row" onclick="openPlanosModal()" style="cursor:pointer;">
+      <div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+      <div class="qa-body">
+        <div class="t">Ver planos e assinar</div>
+        <div class="s">Start, Pro ou Equipe — pagamento via Pix, boleto ou cartão.</div>
+      </div>
+      <div class="qa-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></div>
+    </div>
+
     <div class="section-title"><h2>Seu perfil</h2></div>
     <div class="card qa-row" onclick="openProfileModal()" style="cursor:pointer;">
       <div class="qa-icon" id="profileCardAvatar">
@@ -799,6 +809,18 @@
     <div class="section-title"><h2>Equipe</h2><span class="hint" id="equipeCount"></span></div>
     <button class="btn ghost" onclick="loadTeamData()" style="margin-bottom:14px;">↻ Atualizar</button>
     <div class="card" id="equipeTotalCard" style="background:var(--primary-btn); color:#fff; box-shadow:none;"></div>
+
+    <div class="card">
+      <h3>Adicionar colega</h3>
+      <p style="font-size:12px; color:var(--ink-soft); font-weight:500; line-height:1.5; margin-bottom:10px;">
+        Cria o acesso da pessoa direto aqui — os 5 primeiros são grátis, a partir do 6º entra
+        a cobrança extra de R$29,90/mês por pessoa.
+      </p>
+      <div class="field"><input type="email" id="novoColegaEmail" placeholder="email@colega.com"></div>
+      <button class="btn primary" id="btnConvidarColega" onclick="convidarColega()">Adicionar colega</button>
+      <div id="colegaResultado"></div>
+    </div>
+
     <div id="equipeList"></div>
 
     <div class="card" style="margin-top:18px;">
@@ -895,6 +917,33 @@
   </div>
 </div>
 
+<!-- ===== MODAL: escolher plano ===== -->
+<div class="overlay" id="planosOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3>Escolha seu plano</h3><button class="close-x" onclick="closeModal('planosOverlay')">✕</button></div>
+    <p style="font-size:12px; color:var(--ink-soft); font-weight:500; line-height:1.5; margin-bottom:16px;">
+      Pagamento processado pelo Asaas (Pix, boleto ou cartão). Modelo pré-pago: assim que confirmar, seu acesso libera sozinho.
+    </p>
+    <div id="planosError" class="auth-error"></div>
+
+    <div class="card" style="margin-bottom:10px;">
+      <h3 style="text-transform:none; font-size:15px; color:var(--ink);">Start — R$39,90/mês</h3>
+      <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;">Cadastro de vendas, parcelas e recebimentos.</p>
+      <button class="btn ghost" onclick="assinarPlano('start')" id="btn-plano-start">Assinar Start</button>
+    </div>
+    <div class="card" style="margin-bottom:10px;">
+      <h3 style="text-transform:none; font-size:15px; color:var(--ink);">Pro — R$59,90/mês</h3>
+      <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;">Tudo do Start + relatórios, previsão e suporte prioritário.</p>
+      <button class="btn primary" onclick="assinarPlano('pro')" id="btn-plano-pro">Assinar Pro</button>
+    </div>
+    <div class="card">
+      <h3 style="text-transform:none; font-size:15px; color:var(--ink);">Equipe — R$149,90/mês</h3>
+      <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;">Até 5 usuários + painel gerencial. R$29,90 por usuário extra.</p>
+      <button class="btn ghost" onclick="assinarPlano('equipe')" id="btn-plano-equipe">Assinar Equipe</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="adjustOverlay">
   <div class="modal">
     <div class="modal-head"><h3>Ajustes de recebimento</h3><button class="close-x" onclick="closeModal('adjustOverlay')">✕</button></div>
@@ -966,7 +1015,19 @@ const TAB_ORDER = ['dashboard','vendas','recebimentos','config','equipe'];
 let currentTab = 'dashboard';
 let currentUser = null;
 
+// 🔧 TROQUE pelo link do seu projeto no Vercel (sem barra no final)
+const VERCEL_API_BASE = 'https://SEU-PROJETO.vercel.app';
+
 const fmtMoney = (v) => 'R$ ' + (v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+// Escapa texto digitado pelo usuário (nome de cliente, nome de marca, e-mail exibido)
+// antes de inserir na tela, pra impedir injeção de HTML/script — segurança básica obrigatória
+// sempre que texto livre de alguém vira parte da página de outra pessoa.
+const escapeHtml = (str) => {
+  if(str == null) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+};
 const fmtDate = (iso) => { if(!iso) return '-'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
 const monthLabel = (key) => { const [y,m]=key.split('-'); const dt=new Date(y, m-1, 1); return dt.toLocaleDateString('pt-BR',{month:'short', year:'2-digit'}).replace('.',''); };
 
@@ -998,7 +1059,7 @@ function hexToRgba(hex, alpha){
 function tagHtml(marcaKey, extraStyle){
   const b = brandConfig[marcaKey] || {name:marcaKey, color:'#888E99', logo:null};
   const icon = b.logo ? `<img src="${b.logo}">` : `<span class="dot"></span>`;
-  return `<span class="tag" style="background:${hexToRgba(b.color,0.12)}; color:${b.color}; ${extraStyle||''}">${icon}${b.name}</span>`;
+  return `<span class="tag" style="background:${hexToRgba(b.color,0.12)}; color:${b.color}; ${extraStyle||''}">${icon}${escapeHtml(b.name)}</span>`;
 }
 
 function setGreeting(name){
@@ -1211,7 +1272,7 @@ async function loadTeamData(){
       const recebido = insts.filter(i=>i.status==='Recebida').reduce((a,i)=>a+(i.valorRecebido||0),0) + uAdjust;
       const pendente = insts.filter(i=>i.status!=='Recebida').reduce((a,i)=>a+i.valorPrevisto,0);
       grandPrevisto += previsto; grandRecebido += recebido; grandPendente += pendente;
-      rows.push({ email: data.email || doc.id, salesCount: uSales.length, previsto, recebido, pendente });
+      rows.push({ email: escapeHtml(data.email || doc.id), salesCount: uSales.length, previsto, recebido, pendente });
     });
 
     rows.sort((a,b)=> b.previsto - a.previsto);
@@ -1454,6 +1515,75 @@ function showModal(id){
   }
 }
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+function openPlanosModal(){
+  document.getElementById('planosError').classList.remove('show');
+  showModal('planosOverlay');
+}
+
+async function assinarPlano(planId){
+  const btn = document.getElementById(`btn-plano-${planId}`);
+  const errBox = document.getElementById('planosError');
+  errBox.classList.remove('show');
+  const originalText = btn.textContent;
+  btn.textContent = 'Gerando cobrança…';
+  btn.disabled = true;
+  try{
+    const idToken = await currentUser.getIdToken();
+    const resp = await fetch(`${VERCEL_API_BASE}/api/createCheckout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+      body: JSON.stringify({ planId })
+    });
+    const data = await resp.json();
+    if(!resp.ok) throw new Error(data.error || 'Erro ao gerar cobrança');
+    window.open(data.checkoutUrl, '_blank');
+    showToast('Cobrança gerada — finalize o pagamento na aba que abriu');
+    closeModal('planosOverlay');
+  }catch(e){
+    errBox.textContent = 'Não foi possível gerar a cobrança: ' + e.message;
+    errBox.classList.add('show');
+  }finally{
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+async function convidarColega(){
+  const emailInput = document.getElementById('novoColegaEmail');
+  const email = emailInput.value.trim();
+  if(!email){ showToast('Digite o e-mail do colega'); return; }
+  const btn = document.getElementById('btnConvidarColega');
+  const original = btn.textContent;
+  btn.textContent = 'Adicionando…';
+  btn.disabled = true;
+  try{
+    const idToken = await currentUser.getIdToken();
+    const resp = await fetch(`${VERCEL_API_BASE}/api/addTeamMember`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+      body: JSON.stringify({ email })
+    });
+    const data = await resp.json();
+    if(!resp.ok) throw new Error(data.error || 'Erro ao adicionar colega');
+
+    const avisoExtra = data.extraMember ? ' (conta extra — será cobrado +R$29,90/mês)' : '';
+    document.getElementById('colegaResultado').innerHTML = `
+      <div class="card" style="background:var(--good-soft); margin-top:12px;">
+        <strong style="color:var(--good);">Colega adicionado!${avisoExtra}</strong>
+        <p style="font-size:12px; margin-top:8px;">Envie este link pra ${escapeHtml(email)} criar a própria senha:</p>
+        <input type="text" readonly value="${data.resetLink}" style="width:100%; margin-top:6px; font-size:11px; padding:8px;" onclick="this.select()">
+      </div>`;
+    emailInput.value = '';
+    loadTeamData();
+  }catch(e){
+    showToast('Erro: ' + e.message);
+  }finally{
+    btn.textContent = original;
+    btn.disabled = false;
+  }
+}
+
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
@@ -1503,7 +1633,7 @@ function renderBrandToggle(){
   box.innerHTML = Object.keys(brandConfig).map(key=>{
     const b = brandConfig[key];
     const icon = b.logo ? `<img src="${b.logo}">` : '';
-    return `<button type="button" data-b="${key}" onclick="selectBrand('${key}')">${icon}${b.name}</button>`;
+    return `<button type="button" data-b="${key}" onclick="selectBrand('${key}')">${icon}${escapeHtml(b.name)}</button>`;
   }).join('');
 }
 function selectBrand(key){
@@ -1574,7 +1704,7 @@ function openReceiveModal(key){
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <div>
         ${tagHtml(inst.marca)}
-        <div style="font-weight:700; margin-top:7px;">${inst.cliente}</div>
+        <div style="font-weight:700; margin-top:7px;">${escapeHtml(inst.cliente)}</div>
         <div style="font-size:12px; color:var(--ink-soft); font-weight:500;">Parcela ${inst.idx+1} de ${inst.total} · vence ${fmtDate(inst.venc)}</div>
       </div>
       <div class="num" style="font-weight:800; font-size:16px;">${fmtMoney(inst.valorPrevisto)}</div>
@@ -1692,7 +1822,7 @@ function renderConfigCards(){
           <input type="file" accept="image/*" id="logoFile-${key}" style="display:none" onchange="handleLogoUpload('${key}', this)">
         </div>
         <div class="row2">
-          <div class="field"><label>Nome da marca</label><input type="text" id="brandName-${key}" value="${b.name}"></div>
+          <div class="field"><label>Nome da marca</label><input type="text" id="brandName-${key}" value="${escapeHtml(b.name)}"></div>
           <div class="field"><label>Cor de destaque</label><input type="color" id="brandColor-${key}" value="${b.color}" style="padding:4px; height:44px;"></div>
         </div>
         <div class="field" style="max-width:180px;">
@@ -1900,7 +2030,7 @@ function renderVendas(){
       <div class="venda-top">
         <div>
           ${tagHtml(s.marca)}
-          <div class="venda-cliente">${s.cliente}</div>
+          <div class="venda-cliente">${escapeHtml(s.cliente)}</div>
           <div class="venda-meta">Venda em ${fmtDate(s.data)}</div>
         </div>
         <div class="venda-actions">
@@ -1942,7 +2072,7 @@ function renderRecebimentos(){
     const pillClass = i.status==='Recebida' ? 'recebida' : (i.status==='Atrasada' ? 'atrasada' : 'pendente');
     return `<div class="parcela-item stagger-item" style="animation-delay:${Math.min(idx*35,350)}ms" onclick="openReceiveModal('${i.key}')">
       <div class="parcela-left">
-        <div class="cli">${i.cliente}</div>
+        <div class="cli">${escapeHtml(i.cliente)}</div>
         <div class="meta">
           ${tagHtml(i.marca, 'padding:1px 7px;')}
           Parc. ${i.idx+1}/${i.total} · vence ${fmtDate(i.venc)}
@@ -2044,7 +2174,7 @@ function renderDashboard(){
     upcomingCard.innerHTML = upcoming.map(i=>`
       <div class="parcela-item" onclick="openReceiveModal('${i.key}')" style="padding:10px 2px;">
         <div class="parcela-left">
-          <div class="cli" style="font-size:13px;">${i.cliente}</div>
+          <div class="cli" style="font-size:13px;">${escapeHtml(i.cliente)}</div>
           <div class="meta">${tagHtml(i.marca, 'padding:1px 7px;')}P${i.idx+1}/${i.total} · ${fmtDate(i.venc)}</div>
         </div>
         <div class="parcela-right">
