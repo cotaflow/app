@@ -25,7 +25,7 @@
 <meta name="twitter:image" content="https://cotaflow.github.io/app/icon.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -47,8 +47,6 @@
     --primary-2:#16305F;
     --primary-soft:#E7ECFA;
     --primary-soft-2:#DCE4F7;
-    --amber:#1E3A8A;
-    --amber-soft:#E7ECFA;
     --slate:#1E3A8A;
     --slate-soft:#E7ECFA;
     --chev:#B5482F;
@@ -79,8 +77,6 @@
       --primary-2:#2A4C99;
       --primary-soft:#1C2740;
       --primary-soft-2:#212C46;
-      --amber:#6E9AF0;
-      --amber-soft:#1C2740;
       --slate:#6E9AF0;
       --slate-soft:#1C2740;
       --chev:#E2795F;
@@ -123,7 +119,7 @@
   }
   .brandmark img{ width:100%; height:100%; object-fit:cover; display:block; }
   .brandmark svg{ width:17px; height:17px; }
-  .brandname{ font-size:15.5px; font-weight:800; letter-spacing:-0.02em; color:var(--ink); }
+  .brandname{ font-family:'Space Grotesk',sans-serif; font-size:15.5px; font-weight:700; letter-spacing:-0.01em; color:var(--ink); }
   .brandname span{ color:var(--primary); }
 
   /* ---------- header / hero ---------- */
@@ -144,10 +140,11 @@
   }
   header.app .eyebrow svg{ width:12px; height:12px; }
   header.app h1{
-    font-size:25px;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:26px;
     margin:8px 0 6px;
-    font-weight:800;
-    letter-spacing:-0.02em;
+    font-weight:700;
+    letter-spacing:-0.01em;
   }
   header.app .sub{ color:var(--ink-soft); font-size:13.5px; line-height:1.5; max-width:34ch; }
 
@@ -170,7 +167,7 @@
   }
   .hero-balance .top-row{ display:flex; justify-content:space-between; align-items:center; }
   .hero-balance .lbl{ font-size:10.5px; color:var(--ink-soft); font-weight:700; text-transform:uppercase; letter-spacing:.05em;}
-  .hero-balance .big{ font-size:28px; font-weight:800; letter-spacing:-0.02em; margin-top:6px; color:var(--primary); }
+  .hero-balance .big{ font-family:'Space Grotesk',sans-serif; font-size:30px; font-weight:700; letter-spacing:-0.01em; margin-top:6px; color:var(--primary); }
   .hero-balance .note{ font-size:12px; color:var(--ink-soft); margin-top:3px; font-weight:500;}
   .hero-icon{
     width:32px; height:32px; border-radius:9px; background:var(--primary-soft);
@@ -194,7 +191,7 @@
   }
   .kpi.recebido:active{ transform:scale(0.96); }
   .kpi .lbl{ font-size:10.5px; color:var(--ink-soft); font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
-  .kpi .val{ font-size:14.5px; font-weight:800; margin-top:5px; letter-spacing:-0.01em; transition:color .2s ease;}
+  .kpi .val{ font-family:'Space Grotesk',sans-serif; font-size:15.5px; font-weight:700; margin-top:5px; letter-spacing:-0.01em; transition:color .2s ease;}
   .kpi.previsto .val{ color:var(--ink); }
   .kpi.recebido .val{ color:var(--good); }
   .kpi.pendente .val{ color:var(--primary); }
@@ -269,7 +266,7 @@
     display:flex; align-items:baseline; justify-content:space-between;
     margin: 4px 2px 10px;
   }
-  .section-title h2{ font-size:17px; font-weight:800; letter-spacing:-0.01em; }
+  .section-title h2{ font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; letter-spacing:-0.01em; }
   .section-title .hint{ font-size:12px; color:var(--ink-soft); font-weight:500; }
 
   /* ---------- cards ---------- */
@@ -282,18 +279,6 @@
     box-shadow:var(--shadow);
   }
   .card h3{ font-size:12.5px; color:var(--ink-soft); font-weight:700; margin:0 0 10px; text-transform:uppercase; letter-spacing:.04em;}
-
-  /* ---------- icon badge (signature element) ---------- */
-  .icon-badge{
-    width:38px; height:38px; border-radius:11px;
-    display:flex; align-items:center; justify-content:center;
-    margin-bottom:10px;
-  }
-  .icon-badge svg{ width:19px; height:19px; }
-  .icon-badge.ink{ background:var(--ink-fixed); } .icon-badge.ink svg{ stroke:#fff; }
-  .icon-badge.primary{ background:var(--primary-btn); } .icon-badge.primary svg{ stroke:#fff; }
-  .icon-badge.amber{ background:var(--amber); } .icon-badge.amber svg{ stroke:#fff; }
-  .icon-badge.slate{ background:var(--slate); } .icon-badge.slate svg{ stroke:#fff; }
 
   /* ---------- brand tag ---------- */
   .tag{
@@ -343,7 +328,7 @@
   /* ---------- venda card ---------- */
   .venda-card{ position:relative; }
   .venda-top{ display:flex; justify-content:space-between; align-items:flex-start; }
-  .venda-cliente{ font-weight:700; font-size:15px; margin-top:7px; letter-spacing:-0.01em;}
+  .venda-cliente{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; margin-top:7px; letter-spacing:-0.01em;}
   .venda-meta{ font-size:12px; color:var(--ink-soft); margin-top:2px; font-weight:500;}
   .venda-valor{ font-size:12.5px; margin-top:10px; color:var(--ink-soft); font-weight:500;}
   .venda-valor b{ color:var(--ink); font-size:14.5px; font-weight:700;}
@@ -354,7 +339,7 @@
   /* ---------- parcel stubs ---------- */
   .stub-row{ display:flex; gap:6px; margin-top:14px; }
   .stub{
-    flex:1; border:1.5px solid var(--border); border-radius:12px; padding:8px 4px;
+    flex:1; border:1.5px dashed var(--border); border-radius:12px; padding:8px 4px;
     text-align:center; background:var(--bg-2); cursor:pointer;
     transition:transform .13s ease;
   }
@@ -363,9 +348,9 @@
   .stub .v{ font-size:11.5px; font-weight:700; margin-top:3px;}
   .stub .d{ font-size:9.5px; color:var(--ink-soft); margin-top:1px; font-weight:500;}
   .stub.pendente{ }
-  .stub.atrasada{ border-color:var(--bad); background:var(--bad-soft); }
+  .stub.atrasada{ border-style:solid; border-color:var(--bad); background:var(--bad-soft); }
   .stub.atrasada .v{ color:var(--bad); }
-  .stub.recebida{ border-color:var(--good); background:var(--good-soft); }
+  .stub.recebida{ border-style:solid; border-color:var(--good); background:var(--good-soft); }
   .stub.recebida .v{ color:var(--good); }
 
   /* ---------- recebimentos list ---------- */
@@ -385,7 +370,7 @@
   }
   .parcela-item:active{ background:var(--bg-2); transform:scale(0.99); }
   .parcela-item:last-child{ border-bottom:none; }
-  .parcela-left .cli{ font-weight:700; font-size:13.5px; }
+  .parcela-left .cli{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14.5px; }
   .parcela-left .meta{ font-size:11.5px; color:var(--ink-soft); margin-top:3px; display:flex; gap:6px; align-items:center; font-weight:500;}
   .parcela-right{ text-align:right; }
   .parcela-right .val{ font-weight:700; font-size:14px; }
@@ -426,10 +411,16 @@
   .logo-actions .hint2{ font-size:11px; color:var(--ink-soft); margin-top:3px; font-weight:500; }
 
   /* ---------- empty state ---------- */
-  .empty{ text-align:center; padding:36px 20px; color:var(--ink-soft); }
-  .empty svg{ width:34px; height:34px; margin-bottom:12px; stroke:var(--ink-faint); }
+  .empty{ text-align:center; padding:40px 20px; color:var(--ink-soft); }
+  .empty .empty-icon{
+    width:56px; height:56px; border-radius:16px; margin:0 auto 16px;
+    background:linear-gradient(150deg, var(--primary-soft), var(--card));
+    border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .empty svg{ width:24px; height:24px; stroke:var(--primary); }
   .empty .t{ font-weight:700; color:var(--ink); font-size:15px; margin-bottom:4px;}
-  .empty .s{ font-size:12.5px; font-weight:500; }
+  .empty .s{ font-size:12.5px; font-weight:500; max-width:34ch; margin:0 auto; line-height:1.5;}
 
   /* ---------- modal ---------- */
   .overlay{
@@ -1036,7 +1027,7 @@ let currentTab = 'dashboard';
 let currentUser = null;
 
 // 🔧 TROQUE pelo link do seu projeto no Vercel (sem barra no final)
-const VERCEL_API_BASE = 'https://cotaflow-backend.vercel.app';
+const VERCEL_API_BASE = 'https://SEU-PROJETO.vercel.app';
 
 const fmtMoney = (v) => 'R$ ' + (v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 // Escapa texto digitado pelo usuário (nome de cliente, nome de marca, e-mail exibido)
@@ -1275,7 +1266,7 @@ async function checkAdmin(){
 async function loadTeamData(){
   if(!isAdminUser) return;
   const listEl = document.getElementById('equipeList');
-  listEl.innerHTML = emptyState('Carregando…', 'Buscando dados da equipe.');
+  listEl.innerHTML = emptyState('Carregando…', 'Buscando dados da equipe.', 'equipe');
   try{
     const snap = await db.collection('users').where('companyId', '==', companyId).get();
     const rows = [];
@@ -1305,7 +1296,7 @@ async function loadTeamData(){
     `;
 
     if(rows.length === 0){
-      listEl.innerHTML = emptyState('Ninguém ainda', 'Nenhum colega lançou vendas até agora.');
+      listEl.innerHTML = emptyState('Ninguém ainda', 'Nenhum colega lançou vendas até agora.', 'equipe');
       return;
     }
     listEl.innerHTML = rows.map(r=>`
@@ -1326,7 +1317,7 @@ async function loadTeamData(){
       </div>
     `).join('');
   }catch(e){
-    listEl.innerHTML = emptyState('Erro ao carregar', 'Verifique se as regras do Firestore liberam leitura para administradores.');
+    listEl.innerHTML = emptyState('Erro ao carregar', 'Verifique se as regras do Firestore liberam leitura para administradores.', 'equipe');
   }
 }
 
@@ -2087,7 +2078,7 @@ function renderVendas(){
   document.getElementById('vendasCount').textContent = sales.length + (sales.length===1?' venda':' vendas');
   const list = document.getElementById('vendasList');
   if(sales.length===0){
-    list.innerHTML = emptyState('Nenhuma venda lançada', 'Toque em "+ Nova venda" para começar a acompanhar suas comissões.');
+    list.innerHTML = emptyState('Nenhuma venda lançada', 'Toque em "+ Nova venda" para começar a acompanhar suas comissões.', 'vendas');
     return;
   }
   const ordered = [...sales].sort((a,b)=> b.data.localeCompare(a.data));
@@ -2142,7 +2133,7 @@ function renderRecebimentos(){
 
   const list = document.getElementById('parcelasList');
   if(insts.length===0){
-    list.innerHTML = emptyState('Nada por aqui', 'Nenhuma parcela encontrada para este filtro.');
+    list.innerHTML = emptyState('Nada por aqui', 'Nenhuma parcela encontrada para este filtro.', 'parcelas');
     return;
   }
   list.innerHTML = insts.map((i,idx)=>{
@@ -2209,18 +2200,10 @@ function renderDashboard(){
 
   const monthlyCard = document.getElementById('monthlyCard');
   if(keys.length===0){
-    monthlyCard.innerHTML = emptyState('Sem dados ainda', 'Lance uma venda para ver o fluxo mensal de recebimentos.');
+    monthlyCard.innerHTML = emptyState('Sem dados ainda', 'Lance uma venda para ver o fluxo mensal de recebimentos.', 'vendas');
   } else {
     document.getElementById('dashRange').textContent = `${monthLabel(keys[0])} — ${monthLabel(keys[keys.length-1])}`;
-    monthlyCard.innerHTML = keys.map(k=>{
-      const m = months[k];
-      const pctRecebido = m.previsto ? (m.recebido/m.previsto*100) : 0;
-      return `<div class="bar-month">
-        <div class="lbl"><span>${monthLabel(k)}</span><b class="num">${fmtMoney(m.previsto)}</b></div>
-        <div class="bar-track"><div class="bar-fill" style="width:${(m.previsto/maxVal*100).toFixed(1)}%"></div></div>
-        <div class="bar-sub"><span>Recebido: ${fmtMoney(m.recebido)}</span><span>${pctRecebido.toFixed(0)}%</span></div>
-      </div>`;
-    }).join('');
+    monthlyCard.innerHTML = renderMonthlyChart(months, keys, maxVal);
   }
 
   const brandCard = document.getElementById('brandCard');
@@ -2246,7 +2229,7 @@ function renderDashboard(){
   const upcoming = insts.filter(i=>i.status!=='Recebida').slice(0,5);
   const upcomingCard = document.getElementById('upcomingCard');
   if(upcoming.length===0){
-    upcomingCard.innerHTML = emptyState('Tudo em dia', 'Não há parcelas pendentes no momento.');
+    upcomingCard.innerHTML = emptyState('Tudo em dia', 'Não há parcelas pendentes no momento.', 'ok');
   } else {
     upcomingCard.innerHTML = upcoming.map(i=>`
       <div class="parcela-item" onclick="openReceiveModal('${i.key}')" style="padding:10px 2px;">
@@ -2262,9 +2245,59 @@ function renderDashboard(){
   }
 }
 
-function emptyState(title, sub){
+function renderMonthlyChart(months, keys, maxVal){
+  const slotW = 62, barW = 15, gap = 5, chartH = 108, baseY = 122, topPad = 10;
+  const svgW = keys.length * slotW;
+  const svgH = 150;
+  const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+  const border = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
+  const inkSoft = getComputedStyle(document.documentElement).getPropertyValue('--ink-soft').trim();
+  const inkFaint = getComputedStyle(document.documentElement).getPropertyValue('--ink-faint').trim();
+
+  let bars = '';
+  keys.forEach((k, idx) => {
+    const m = months[k];
+    const cx = idx * slotW + slotW/2;
+    const hPrev = Math.max(2, (m.previsto/maxVal) * (chartH - topPad));
+    const hReceb = Math.max(0, (m.recebido/maxVal) * (chartH - topPad));
+    const x1 = cx - gap/2 - barW;
+    const x2 = cx + gap/2;
+    bars += `
+      <rect x="${x1}" y="${baseY - hPrev}" width="${barW}" height="${hPrev}" rx="4" fill="${border}"/>
+      <rect x="${x2}" y="${baseY - hReceb}" width="${barW}" height="${hReceb}" rx="4" fill="url(#barGrad)"/>
+      <text x="${cx}" y="${baseY + 18}" text-anchor="middle" font-size="9.5" font-weight="600" fill="${inkFaint}" font-family="Inter,sans-serif">${monthLabel(k)}</text>
+    `;
+  });
+
+  return `
+    <svg viewBox="0 0 ${svgW} ${svgH}" width="100%" height="${svgH}" style="overflow:visible; display:block;">
+      <defs>
+        <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${primary}" stop-opacity="1"/>
+          <stop offset="100%" stop-color="${primary}" stop-opacity="0.75"/>
+        </linearGradient>
+      </defs>
+      <line x1="0" y1="${baseY}" x2="${svgW}" y2="${baseY}" stroke="${border}" stroke-width="1"/>
+      ${bars}
+    </svg>
+    <div style="display:flex; gap:16px; justify-content:center; margin-top:14px;">
+      <span style="font-size:11px; color:${inkSoft}; font-weight:600; display:flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:2px; background:${border}; display:inline-block;"></span>Previsto</span>
+      <span style="font-size:11px; color:${inkSoft}; font-weight:600; display:flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:2px; background:${primary}; display:inline-block;"></span>Recebido</span>
+    </div>
+  `;
+}
+
+function emptyState(title, sub, icon){
+  const icons = {
+    vendas: '<path d="M3 7h18v13H3zM3 7l3-4h12l3 4"/>',
+    parcelas: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+    equipe: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+    ok: '<path d="M20 6 9 17l-5-5"/>',
+    lista: '<path d="M4 19h16M4 15h10M4 11h16M4 7h10"/>'
+  };
+  const path = icons[icon] || icons.lista;
   return `<div class="empty">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 19h16M4 15h10M4 11h16M4 7h10"/></svg>
+    <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${path}</svg></div>
     <div class="t">${title}</div><div class="s">${sub}</div>
   </div>`;
 }
