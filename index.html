@@ -921,27 +921,43 @@
 <div class="overlay" id="planosOverlay">
   <div class="modal">
     <div class="modal-head"><h3>Escolha seu plano</h3><button class="close-x" onclick="closeModal('planosOverlay')">✕</button></div>
-    <p style="font-size:12px; color:var(--ink-soft); font-weight:500; line-height:1.5; margin-bottom:16px;">
-      Pagamento processado pelo Asaas (Pix, boleto ou cartão). Modelo pré-pago: assim que confirmar, seu acesso libera sozinho.
-    </p>
-    <div id="planosError" class="auth-error"></div>
 
-    <div class="field"><label>CPF ou CNPJ (exigido pelo Asaas pra gerar a cobrança)</label><input type="text" id="planoCpfCnpj" placeholder="000.000.000-00" inputmode="numeric"></div>
+    <div id="planosStep1">
+      <p style="font-size:12px; color:var(--ink-soft); font-weight:500; line-height:1.5; margin-bottom:16px;">
+        Pagamento processado pelo Asaas (Pix, boleto ou cartão). Modelo pré-pago: assim que confirmar, seu acesso libera sozinho.
+      </p>
+      <div id="planosError" class="auth-error"></div>
 
-    <div class="card" style="margin-bottom:10px;">
-      <h3 style="text-transform:none; font-size:15px; color:var(--ink);">Start — R$39,90/mês</h3>
-      <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;">Cadastro de vendas, parcelas e recebimentos.</p>
-      <button class="btn ghost" onclick="assinarPlano('start')" id="btn-plano-start">Assinar Start</button>
+      <div class="field"><label>CPF ou CNPJ (exigido pelo Asaas pra gerar a cobrança)</label><input type="text" id="planoCpfCnpj" placeholder="000.000.000-00" inputmode="numeric"></div>
+
+      <div class="card" style="margin-bottom:10px;">
+        <h3 style="text-transform:none; font-size:15px; color:var(--ink);">Start — R$39,90/mês</h3>
+        <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;">Cadastro de vendas, parcelas e recebimentos.</p>
+        <button class="btn ghost" onclick="escolherFormaPagamento('start')">Assinar Start</button>
+      </div>
+      <div class="card" style="margin-bottom:10px;">
+        <h3 style="text-transform:none; font-size:15px; color:var(--ink);">Pro — R$59,90/mês</h3>
+        <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;">Tudo do Start + relatórios, previsão e suporte prioritário.</p>
+        <button class="btn primary" onclick="escolherFormaPagamento('pro')">Assinar Pro</button>
+      </div>
+      <div class="card">
+        <h3 style="text-transform:none; font-size:15px; color:var(--ink);">Equipe — R$149,90/mês</h3>
+        <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;">Até 5 usuários + painel gerencial. R$29,90 por usuário extra.</p>
+        <button class="btn ghost" onclick="escolherFormaPagamento('equipe')">Assinar Equipe</button>
+      </div>
     </div>
-    <div class="card" style="margin-bottom:10px;">
-      <h3 style="text-transform:none; font-size:15px; color:var(--ink);">Pro — R$59,90/mês</h3>
-      <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;">Tudo do Start + relatórios, previsão e suporte prioritário.</p>
-      <button class="btn primary" onclick="assinarPlano('pro')" id="btn-plano-pro">Assinar Pro</button>
-    </div>
-    <div class="card">
-      <h3 style="text-transform:none; font-size:15px; color:var(--ink);">Equipe — R$149,90/mês</h3>
-      <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;">Até 5 usuários + painel gerencial. R$29,90 por usuário extra.</p>
-      <button class="btn ghost" onclick="assinarPlano('equipe')" id="btn-plano-equipe">Assinar Equipe</button>
+
+    <!-- Passo 2: escolher Pix / Boleto / Cartão -->
+    <div id="planosStep2" style="display:none;">
+      <button class="btn ghost" onclick="voltarStep1()" style="margin-bottom:14px;">← Voltar</button>
+      <p style="font-size:13px; font-weight:700; margin-bottom:12px;">Como você quer pagar?</p>
+      <div id="metodoBotoes" style="display:flex; gap:8px; margin-bottom:16px;">
+        <button class="btn ghost" onclick="gerarCobranca('PIX')">Pix</button>
+        <button class="btn ghost" onclick="gerarCobranca('BOLETO')">Boleto</button>
+        <button class="btn ghost" onclick="gerarCobranca('CREDIT_CARD')">Cartão</button>
+      </div>
+      <div id="planosError2" class="auth-error"></div>
+      <div id="resultadoPagamento"></div>
     </div>
   </div>
 </div>
@@ -1015,11 +1031,12 @@ let firstAuthCheck = true;
 let isAdminUser = false;
 let companyId = null;
 const TAB_ORDER = ['dashboard','vendas','recebimentos','config','equipe'];
+let planoEscolhido = null;
 let currentTab = 'dashboard';
 let currentUser = null;
 
 // 🔧 TROQUE pelo link do seu projeto no Vercel (sem barra no final)
-const VERCEL_API_BASE = 'https://cotaflow-backend.vercel.app';
+const VERCEL_API_BASE = 'https://SEU-PROJETO.vercel.app';
 
 const fmtMoney = (v) => 'R$ ' + (v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 // Escapa texto digitado pelo usuário (nome de cliente, nome de marca, e-mail exibido)
@@ -1523,11 +1540,12 @@ function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 function openPlanosModal(){
   document.getElementById('planosError').classList.remove('show');
   document.getElementById('planoCpfCnpj').value = userCpfCnpj || '';
+  document.getElementById('planosStep1').style.display = '';
+  document.getElementById('planosStep2').style.display = 'none';
   showModal('planosOverlay');
 }
 
-async function assinarPlano(planId){
-  const btn = document.getElementById(`btn-plano-${planId}`);
+function escolherFormaPagamento(planId){
   const errBox = document.getElementById('planosError');
   const cpfCnpj = document.getElementById('planoCpfCnpj').value.replace(/\D/g,'');
   errBox.classList.remove('show');
@@ -1536,29 +1554,76 @@ async function assinarPlano(planId){
     errBox.classList.add('show');
     return;
   }
-  const originalText = btn.textContent;
-  btn.textContent = 'Gerando cobrança…';
-  btn.disabled = true;
+  planoEscolhido = { planId, cpfCnpj };
+  document.getElementById('resultadoPagamento').innerHTML = '';
+  document.getElementById('planosError2').classList.remove('show');
+  document.getElementById('metodoBotoes').style.display = 'flex';
+  document.getElementById('planosStep1').style.display = 'none';
+  document.getElementById('planosStep2').style.display = '';
+}
+
+function voltarStep1(){
+  document.getElementById('planosStep1').style.display = '';
+  document.getElementById('planosStep2').style.display = 'none';
+}
+
+async function gerarCobranca(billingType){
+  if(!planoEscolhido) return;
+  const errBox = document.getElementById('planosError2');
+  const resultBox = document.getElementById('resultadoPagamento');
+  errBox.classList.remove('show');
+  document.getElementById('metodoBotoes').style.display = 'none';
+  resultBox.innerHTML = `<div class="empty"><div class="spinner" style="margin:0 auto;"></div><div class="s" style="margin-top:10px;">Gerando cobrança…</div></div>`;
+
   try{
     const idToken = await currentUser.getIdToken();
     const resp = await fetch(`${VERCEL_API_BASE}/api/createCheckout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-      body: JSON.stringify({ planId, cpfCnpj })
+      body: JSON.stringify({ planId: planoEscolhido.planId, cpfCnpj: planoEscolhido.cpfCnpj, billingType })
     });
     const data = await resp.json();
     if(!resp.ok) throw new Error(data.error || 'Erro ao gerar cobrança');
-    userCpfCnpj = cpfCnpj;
-    window.open(data.checkoutUrl, '_blank');
-    showToast('Cobrança gerada — finalize o pagamento na aba que abriu');
-    closeModal('planosOverlay');
+    userCpfCnpj = planoEscolhido.cpfCnpj;
+
+    if(data.fallbackUrl){
+      resultBox.innerHTML = `<p style="font-size:12.5px; margin-bottom:10px;">Cobrança criada! Toque abaixo pra ver os detalhes de pagamento:</p>
+        <a class="btn primary" href="${data.fallbackUrl}" target="_blank">Ver cobrança</a>`;
+      return;
+    }
+
+    if(billingType === 'PIX'){
+      resultBox.innerHTML = `
+        <div style="text-align:center;">
+          <img src="data:image/png;base64,${data.pixQrCodeImage}" style="width:200px; height:200px; margin:0 auto; display:block; border-radius:12px; border:1px solid var(--border);">
+          <p style="font-size:12px; color:var(--ink-soft); margin-top:10px;">Escaneie com o app do seu banco, ou copie o código abaixo:</p>
+        </div>
+        <div class="field"><textarea id="pixCode" readonly style="width:100%; min-height:70px; font-size:11px; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--bg-2); color:var(--ink);">${data.pixCopyPaste}</textarea></div>
+        <button class="btn primary" onclick="copiarPix()">Copiar código Pix</button>
+      `;
+    } else if(billingType === 'BOLETO'){
+      resultBox.innerHTML = `
+        <p style="font-size:13px; margin-bottom:12px;">Boleto de <b class="num">${fmtMoney(data.value)}</b>, vencimento ${fmtDate(data.dueDate)}.</p>
+        <a class="btn primary" href="${data.bankSlipUrl}" target="_blank">Baixar boleto</a>
+        <div style="height:8px"></div>
+        <a class="btn ghost" href="${data.invoiceUrl}" target="_blank">Ver fatura completa</a>
+      `;
+    } else if(billingType === 'CREDIT_CARD'){
+      resultBox.innerHTML = `<p style="font-size:13px; margin-bottom:12px;">Toque abaixo pra inserir os dados do cartão (página segura da Asaas):</p>
+        <a class="btn primary" href="${data.checkoutUrl}" target="_blank">Pagar com cartão</a>`;
+    }
   }catch(e){
     errBox.textContent = 'Não foi possível gerar a cobrança: ' + e.message;
     errBox.classList.add('show');
-  }finally{
-    btn.textContent = originalText;
-    btn.disabled = false;
+    document.getElementById('metodoBotoes').style.display = 'flex';
+    resultBox.innerHTML = '';
   }
+}
+
+function copiarPix(){
+  const el = document.getElementById('pixCode');
+  el.select();
+  navigator.clipboard.writeText(el.value).then(()=> showToast('Código Pix copiado!'));
 }
 
 async function convidarColega(){
