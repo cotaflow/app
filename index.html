@@ -926,6 +926,8 @@
     </p>
     <div id="planosError" class="auth-error"></div>
 
+    <div class="field"><label>CPF ou CNPJ (exigido pelo Asaas pra gerar a cobrança)</label><input type="text" id="planoCpfCnpj" placeholder="000.000.000-00" inputmode="numeric"></div>
+
     <div class="card" style="margin-bottom:10px;">
       <h3 style="text-transform:none; font-size:15px; color:var(--ink);">Start — R$39,90/mês</h3>
       <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;">Cadastro de vendas, parcelas e recebimentos.</p>
@@ -1003,6 +1005,7 @@ let adiantamentos = 0;
 let userName = '';
 let userPhoto = null;
 let userPhone = '';
+let userCpfCnpj = '';
 let userPlan = 'trial';
 let trialStartedAt = null;
 let currentBrand = 'brand1';
@@ -1330,6 +1333,7 @@ async function loadState(){
     userName = data.name || (currentUser.email ? currentUser.email.split('@')[0] : '');
     userPhoto = data.photo || null;
     userPhone = data.phone || '';
+    userCpfCnpj = data.cpfCnpj || '';
     userPlan = data.plan || 'trial';
     trialStartedAt = data.trialStartedAt || null;
     companyId = data.companyId || currentUser.uid;
@@ -1518,13 +1522,20 @@ function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 
 function openPlanosModal(){
   document.getElementById('planosError').classList.remove('show');
+  document.getElementById('planoCpfCnpj').value = userCpfCnpj || '';
   showModal('planosOverlay');
 }
 
 async function assinarPlano(planId){
   const btn = document.getElementById(`btn-plano-${planId}`);
   const errBox = document.getElementById('planosError');
+  const cpfCnpj = document.getElementById('planoCpfCnpj').value.replace(/\D/g,'');
   errBox.classList.remove('show');
+  if(!cpfCnpj || (cpfCnpj.length !== 11 && cpfCnpj.length !== 14)){
+    errBox.textContent = 'Digite um CPF (11 números) ou CNPJ (14 números) válido.';
+    errBox.classList.add('show');
+    return;
+  }
   const originalText = btn.textContent;
   btn.textContent = 'Gerando cobrança…';
   btn.disabled = true;
@@ -1533,10 +1544,11 @@ async function assinarPlano(planId){
     const resp = await fetch(`${VERCEL_API_BASE}/api/createCheckout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-      body: JSON.stringify({ planId })
+      body: JSON.stringify({ planId, cpfCnpj })
     });
     const data = await resp.json();
     if(!resp.ok) throw new Error(data.error || 'Erro ao gerar cobrança');
+    userCpfCnpj = cpfCnpj;
     window.open(data.checkoutUrl, '_blank');
     showToast('Cobrança gerada — finalize o pagamento na aba que abriu');
     closeModal('planosOverlay');
