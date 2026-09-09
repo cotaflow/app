@@ -384,9 +384,19 @@
   .bar-month:last-child{ margin-bottom:0; }
   .bar-month .lbl{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px; font-weight:600;}
   .bar-month .lbl b{ font-weight:700;}
-  .bar-track{ height:8px; background:var(--bg); border-radius:6px; overflow:hidden; position:relative;}
-  .bar-fill{ height:100%; background:var(--primary); border-radius:6px; }
+  .bar-track{ height:7px; background:var(--bg); border-radius:6px; overflow:hidden; position:relative;}
+  .bar-fill{ height:100%; background:var(--good); border-radius:6px; transition:width .4s ease; }
   .bar-sub{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--ink-soft); margin-top:5px; font-weight:500;}
+
+  .month-row{ padding:14px 0; border-bottom:1px solid var(--border); }
+  .month-row:last-child{ border-bottom:none; padding-bottom:0; }
+  .month-row:first-child{ padding-top:0; }
+  .month-row-top{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; gap:8px; }
+  .month-row-name{ font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700; display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .month-tag{ font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; background:var(--primary-soft); color:var(--primary); padding:2px 8px; border-radius:100px; }
+  .month-row-value{ font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:700; color:var(--primary); white-space:nowrap; }
+  .month-row-value .unit{ font-family:'Inter',sans-serif; font-size:10px; font-weight:600; color:var(--ink-faint); text-transform:uppercase; }
+  .month-row-sub{ font-size:11px; color:var(--ink-soft); margin-top:6px; font-weight:500; }
 
   .brand-split{ display:flex; gap:10px; }
   .brand-split .bit{ flex:1; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--r-md); padding:12px; }
@@ -510,6 +520,54 @@
   }
   .auth-error.show{ display:block; }
   .auth-divider{ display:flex; align-items:center; gap:10px; margin:16px 0; }
+
+  /* ---------- fluxo de planos (passo a passo) ---------- */
+  .step-dots{ display:flex; justify-content:center; gap:6px; margin-bottom:18px; }
+  .step-dots span{ width:6px; height:6px; border-radius:50%; background:var(--border); transition:all .25s ease; }
+  .step-dots span.on{ background:var(--primary); width:18px; border-radius:4px; }
+
+  .plan-icon-wrap{
+    width:52px; height:52px; border-radius:15px; margin:0 auto 14px;
+    background:var(--primary-soft); display:flex; align-items:center; justify-content:center;
+  }
+  .plan-icon-wrap svg{ width:24px; height:24px; stroke:var(--primary); }
+
+  .pricing-card{
+    border:1.5px solid var(--border); border-radius:18px; padding:20px 18px; margin-bottom:12px;
+    position:relative; transition:transform .15s ease, border-color .15s ease;
+  }
+  .pricing-card.featured{ border-color:var(--primary); background:var(--primary-soft); }
+  .pricing-card .pc-badge{
+    position:absolute; top:-11px; left:50%; transform:translateX(-50%);
+    background:var(--primary-btn); color:#fff; font-size:10.5px; font-weight:700;
+    padding:4px 12px; border-radius:100px; letter-spacing:.02em; white-space:nowrap;
+  }
+  .pricing-card .pc-name{ font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:700; text-align:center; }
+  .pricing-card .pc-price{ text-align:center; margin:6px 0 4px; }
+  .pricing-card .pc-price .v{ font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; color:var(--primary); }
+  .pricing-card .pc-price .m{ font-size:12.5px; color:var(--ink-soft); font-weight:600; }
+  .pricing-card .pc-desc{ text-align:center; font-size:12px; color:var(--ink-soft); font-weight:500; margin-bottom:14px; }
+  .pricing-card .pc-feat{ list-style:none; padding:0; margin:0 0 16px; display:flex; flex-direction:column; gap:7px; }
+  .pricing-card .pc-feat li{ font-size:12.5px; display:flex; gap:7px; align-items:flex-start; font-weight:500; color:var(--ink); }
+  .pricing-card .pc-feat svg{ width:14px; height:14px; flex-shrink:0; margin-top:2px; stroke:var(--good); }
+
+  .method-card{
+    display:flex; align-items:center; gap:13px; width:100%;
+    border:1.5px solid var(--border); border-radius:14px; padding:14px; margin-bottom:10px;
+    background:var(--card); cursor:pointer; text-align:left; transition:transform .13s ease, border-color .15s ease;
+    font-family:'Inter',sans-serif;
+  }
+  .method-card:active{ transform:scale(0.98); }
+  .method-card:hover{ border-color:var(--primary); }
+  .method-card .mc-icon{
+    width:42px; height:42px; border-radius:12px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .method-card .mc-icon svg{ width:20px; height:20px; }
+  .method-card .mc-body .mc-t{ font-weight:700; font-size:14px; color:var(--ink); }
+  .method-card .mc-body .mc-s{ font-size:11.5px; color:var(--ink-soft); font-weight:500; margin-top:1px; }
+  .method-card .mc-arrow{ margin-left:auto; color:var(--ink-faint); flex-shrink:0; }
+
   .auth-divider .line{ flex:1; height:1px; background:var(--border); }
   .auth-divider span{ font-size:11px; color:var(--ink-faint); font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
   .auth-magic-info{
@@ -666,7 +724,7 @@
 
   <div class="eyebrow" id="eyebrow">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.8L18 9l-4.4 1.2L12 15l-1.6-4.8L6 9l4.4-1.2z"/></svg>
-    Painel de comissões
+    Painel de comissões <span id="eyebrowDate" style="opacity:.6; font-weight:600;"></span>
   </div>
   <h1 id="greeting">Bom dia</h1>
   <div class="sub" id="headerSub">carregando...</div>
@@ -911,43 +969,90 @@
 <!-- ===== MODAL: escolher plano ===== -->
 <div class="overlay" id="planosOverlay">
   <div class="modal">
-    <div class="modal-head"><h3>Escolha seu plano</h3><button class="close-x" onclick="closeModal('planosOverlay')">✕</button></div>
+    <div class="modal-head"><h3 id="planosTitulo">Escolha seu plano</h3><button class="close-x" onclick="closeModal('planosOverlay')">✕</button></div>
+    <div class="step-dots" id="planosDots">
+      <span class="on" data-step="0"></span><span data-step="1"></span><span data-step="2"></span><span data-step="3"></span>
+    </div>
 
-    <div id="planosStep1">
-      <p style="font-size:12px; color:var(--ink-soft); font-weight:500; line-height:1.5; margin-bottom:16px;">
-        Pagamento processado pelo Asaas (Pix, boleto ou cartão). Modelo pré-pago: assim que confirmar, seu acesso libera sozinho.
+    <!-- Passo 0: CPF/CNPJ -->
+    <div id="planosStep0">
+      <div class="plan-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h6"/></svg></div>
+      <p style="font-size:13px; text-align:center; color:var(--ink-soft); font-weight:500; line-height:1.5; margin-bottom:18px;">
+        Pra gerar sua cobrança pelo Asaas, precisamos do seu CPF ou CNPJ. É rapidinho.
       </p>
       <div id="planosError" class="auth-error"></div>
+      <div class="field"><label>CPF ou CNPJ</label><input type="text" id="planoCpfCnpj" placeholder="000.000.000-00" inputmode="numeric" oninput="formatarCpfCnpj(this)"></div>
+      <button class="btn primary" onclick="irParaPlanos()">Continuar</button>
+    </div>
 
-      <div class="field"><label>CPF ou CNPJ (exigido pelo Asaas pra gerar a cobrança)</label><input type="text" id="planoCpfCnpj" placeholder="000.000.000-00" inputmode="numeric"></div>
+    <!-- Passo 1: escolher plano -->
+    <div id="planosStep1" style="display:none;">
+      <button class="btn ghost" onclick="irParaStep(0)" style="margin-bottom:16px;">← Voltar</button>
 
-      <div class="card" style="margin-bottom:10px;">
-        <h3 style="text-transform:none; font-size:15px; color:var(--ink);">Start — R$39,90/mês</h3>
-        <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;">Cadastro de vendas, parcelas e recebimentos.</p>
+      <div class="pricing-card">
+        <div class="pc-name">Start</div>
+        <div class="pc-price"><span class="v num">R$39,90</span> <span class="m">/mês</span></div>
+        <div class="pc-desc">Pra quem quer sair da planilha</div>
+        <ul class="pc-feat">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Cadastro de vendas e parcelas</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Controle de recebimentos</li>
+        </ul>
         <button class="btn ghost" onclick="escolherFormaPagamento('start')">Assinar Start</button>
       </div>
-      <div class="card" style="margin-bottom:10px;">
-        <h3 style="text-transform:none; font-size:15px; color:var(--ink);">Pro — R$59,90/mês</h3>
-        <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;">Tudo do Start + relatórios, previsão e suporte prioritário.</p>
+
+      <div class="pricing-card featured">
+        <span class="pc-badge">Mais popular ⭐</span>
+        <div class="pc-name">Pro</div>
+        <div class="pc-price"><span class="v num">R$59,90</span> <span class="m">/mês</span></div>
+        <div class="pc-desc">Visão completa do seu dinheiro</div>
+        <ul class="pc-feat">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Tudo do Start</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Relatórios em Excel e PDF</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Previsão e suporte prioritário</li>
+        </ul>
         <button class="btn primary" onclick="escolherFormaPagamento('pro')">Assinar Pro</button>
       </div>
-      <div class="card">
-        <h3 style="text-transform:none; font-size:15px; color:var(--ink);">Equipe — R$149,90/mês</h3>
-        <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;">Até 5 usuários + painel gerencial. R$29,90 por usuário extra.</p>
+
+      <div class="pricing-card">
+        <div class="pc-name">Equipe</div>
+        <div class="pc-price"><span class="v num">R$149,90</span> <span class="m">/mês</span></div>
+        <div class="pc-desc">Até 5 usuários + painel gerencial</div>
+        <ul class="pc-feat">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Tudo do Pro</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Login individual por vendedor</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>+R$29,90 por usuário extra</li>
+        </ul>
         <button class="btn ghost" onclick="escolherFormaPagamento('equipe')">Assinar Equipe</button>
       </div>
     </div>
 
     <!-- Passo 2: escolher Pix / Boleto / Cartão -->
     <div id="planosStep2" style="display:none;">
-      <button class="btn ghost" onclick="voltarStep1()" style="margin-bottom:14px;">← Voltar</button>
-      <p style="font-size:13px; font-weight:700; margin-bottom:12px;">Como você quer pagar?</p>
-      <div id="metodoBotoes" style="display:flex; gap:8px; margin-bottom:16px;">
-        <button class="btn ghost" onclick="gerarCobranca('PIX')">Pix</button>
-        <button class="btn ghost" onclick="gerarCobranca('BOLETO')">Boleto</button>
-        <button class="btn ghost" onclick="gerarCobranca('CREDIT_CARD')">Cartão</button>
-      </div>
+      <button class="btn ghost" onclick="irParaStep(1)" style="margin-bottom:16px;">← Voltar</button>
+      <p style="font-size:14px; font-weight:700; margin-bottom:14px; text-align:center;">Como você quer pagar?</p>
       <div id="planosError2" class="auth-error"></div>
+
+      <button class="method-card" onclick="gerarCobranca('PIX')">
+        <div class="mc-icon" style="background:var(--good-soft);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--good)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><rect x="8" y="8" width="8" height="8" rx="1.5"/></svg></div>
+        <div class="mc-body"><div class="mc-t">Pix</div><div class="mc-s">Aprovação na hora</div></div>
+        <div class="mc-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </button>
+
+      <button class="method-card" onclick="gerarCobranca('BOLETO')">
+        <div class="mc-icon" style="background:var(--primary-soft);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16M8 4v16M12 4v16M14 4v16M18 4v16M20 4v16"/></svg></div>
+        <div class="mc-body"><div class="mc-t">Boleto</div><div class="mc-s">Compensa em até 3 dias úteis</div></div>
+        <div class="mc-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </button>
+
+      <button class="method-card" onclick="gerarCobranca('CREDIT_CARD')">
+        <div class="mc-icon" style="background:var(--bg-2);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+        <div class="mc-body"><div class="mc-t">Cartão de crédito</div><div class="mc-s">Cobrança automática mensal</div></div>
+        <div class="mc-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </button>
+    </div>
+
+    <!-- Passo 3: resultado -->
+    <div id="planosStep3" style="display:none;">
       <div id="resultadoPagamento"></div>
     </div>
   </div>
@@ -1074,9 +1179,53 @@ function tagHtml(marcaKey, extraStyle){
 }
 
 function setGreeting(name){
-  const h = new Date().getHours();
+  const now = new Date();
+  const h = now.getHours();
   const saudacao = h < 12 ? 'Bom dia' : (h < 18 ? 'Boa tarde' : 'Boa noite');
   document.getElementById('greeting').textContent = name ? `${saudacao}, ${name}` : saudacao;
+  const dataFormatada = now.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' }).replace('.', '');
+  document.getElementById('eyebrowDate').textContent = `· ${dataFormatada}`;
+}
+
+// Escolhe o insight mais relevante pra mostrar embaixo da saudação —
+// prioriza o que é mais urgente/acionável, e só cai pra contagem genérica por último.
+function getInsightMessage(){
+  if(sales.length === 0){
+    return `Centralize aqui o controle das comissões de ${brandConfig.brand1.name} e ${brandConfig.brand2.name}, parcela por parcela.`;
+  }
+  const insts = getInstallments();
+
+  const atrasadas = insts.filter(i=>i.status==='Atrasada');
+  if(atrasadas.length > 0){
+    const total = atrasadas.reduce((a,i)=>a+i.valorPrevisto,0);
+    return `⚠️ ${atrasadas.length} parcela${atrasadas.length>1?'s':''} atrasada${atrasadas.length>1?'s':''} — ${fmtMoney(total)} em aberto.`;
+  }
+
+  const hojeIso = todayIso();
+  const d7 = new Date(); d7.setDate(d7.getDate()+7);
+  const em7Iso = `${d7.getFullYear()}-${String(d7.getMonth()+1).padStart(2,'0')}-${String(d7.getDate()).padStart(2,'0')}`;
+  const estaSemana = insts.filter(i=> i.status==='Pendente' && i.venc >= hojeIso && i.venc <= em7Iso);
+  if(estaSemana.length > 0){
+    const total = estaSemana.reduce((a,i)=>a+i.valorPrevisto,0);
+    return `${estaSemana.length} parcela${estaSemana.length>1?'s':''} vence${estaSemana.length>1?'m':''} essa semana — ${fmtMoney(total)}.`;
+  }
+
+  const porMes = {};
+  insts.forEach(i=>{
+    if(i.status==='Recebida'){
+      const mk = i.venc.slice(0,7);
+      porMes[mk] = (porMes[mk]||0) + (i.valorRecebido||0);
+    }
+  });
+  const meses = Object.keys(porMes);
+  if(meses.length > 0){
+    const melhor = meses.reduce((a,b)=> porMes[a] > porMes[b] ? a : b);
+    if(porMes[melhor] > 0){
+      return `📈 Seu melhor mês foi ${monthLabel(melhor)}, com ${fmtMoney(porMes[melhor])} recebidos.`;
+    }
+  }
+
+  return `Você tem ${sales.length} ${sales.length===1?'venda lançada':'vendas lançadas'} e ${insts.length} parcelas no total.`;
 }
 
 /* ============================================================
@@ -1528,15 +1677,36 @@ function showModal(id){
 }
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 
+function irParaStep(n){
+  [0,1,2,3].forEach(i=>{
+    document.getElementById(`planosStep${i}`).style.display = (i===n) ? '' : 'none';
+  });
+  document.querySelectorAll('#planosDots span').forEach(dot=>{
+    dot.classList.toggle('on', Number(dot.dataset.step) <= n);
+  });
+  const titulos = ['Antes de continuar', 'Escolha seu plano', 'Como pagar?', 'Quase lá!'];
+  document.getElementById('planosTitulo').textContent = titulos[n];
+}
+
+function formatarCpfCnpj(input){
+  let v = input.value.replace(/\D/g,'').slice(0,14);
+  if(v.length <= 11){
+    v = v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+  } else {
+    v = v.replace(/(\d{2})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1/$2').replace(/(\d{4})(\d{1,2})$/,'$1-$2');
+  }
+  input.value = v;
+}
+
 function openPlanosModal(){
   document.getElementById('planosError').classList.remove('show');
   document.getElementById('planoCpfCnpj').value = userCpfCnpj || '';
-  document.getElementById('planosStep1').style.display = '';
-  document.getElementById('planosStep2').style.display = 'none';
+  if(userCpfCnpj) formatarCpfCnpj(document.getElementById('planoCpfCnpj'));
+  irParaStep(0);
   showModal('planosOverlay');
 }
 
-function escolherFormaPagamento(planId){
+function irParaPlanos(){
   const errBox = document.getElementById('planosError');
   const cpfCnpj = document.getElementById('planoCpfCnpj').value.replace(/\D/g,'');
   errBox.classList.remove('show');
@@ -1545,25 +1715,22 @@ function escolherFormaPagamento(planId){
     errBox.classList.add('show');
     return;
   }
-  planoEscolhido = { planId, cpfCnpj };
-  document.getElementById('resultadoPagamento').innerHTML = '';
-  document.getElementById('planosError2').classList.remove('show');
-  document.getElementById('metodoBotoes').style.display = 'flex';
-  document.getElementById('planosStep1').style.display = 'none';
-  document.getElementById('planosStep2').style.display = '';
+  userCpfCnpj = cpfCnpj;
+  irParaStep(1);
 }
 
-function voltarStep1(){
-  document.getElementById('planosStep1').style.display = '';
-  document.getElementById('planosStep2').style.display = 'none';
+function escolherFormaPagamento(planId){
+  planoEscolhido = { planId, cpfCnpj: userCpfCnpj };
+  document.getElementById('resultadoPagamento').innerHTML = '';
+  document.getElementById('planosError2').classList.remove('show');
+  irParaStep(2);
 }
 
 async function gerarCobranca(billingType){
   if(!planoEscolhido) return;
+  irParaStep(3);
   const errBox = document.getElementById('planosError2');
   const resultBox = document.getElementById('resultadoPagamento');
-  errBox.classList.remove('show');
-  document.getElementById('metodoBotoes').style.display = 'none';
   resultBox.innerHTML = `<div class="empty"><div class="spinner" style="margin:0 auto;"></div><div class="s" style="margin-top:10px;">Gerando cobrança…</div></div>`;
 
   try{
@@ -1578,7 +1745,9 @@ async function gerarCobranca(billingType){
     userCpfCnpj = planoEscolhido.cpfCnpj;
 
     if(data.fallbackUrl){
-      resultBox.innerHTML = `<p style="font-size:12.5px; margin-bottom:10px;">Cobrança criada! Toque abaixo pra ver os detalhes de pagamento:</p>
+      resultBox.innerHTML = `
+        <div class="plan-icon-wrap" style="background:var(--good-soft);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--good)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <p style="font-size:13px; text-align:center; margin-bottom:14px;">Cobrança criada! Toque abaixo pra ver os detalhes de pagamento:</p>
         <a class="btn primary" href="${data.fallbackUrl}" target="_blank">Ver cobrança</a>`;
       return;
     }
@@ -1586,28 +1755,33 @@ async function gerarCobranca(billingType){
     if(billingType === 'PIX'){
       resultBox.innerHTML = `
         <div style="text-align:center;">
-          <img src="data:image/png;base64,${data.pixQrCodeImage}" style="width:200px; height:200px; margin:0 auto; display:block; border-radius:12px; border:1px solid var(--border);">
-          <p style="font-size:12px; color:var(--ink-soft); margin-top:10px;">Escaneie com o app do seu banco, ou copie o código abaixo:</p>
+          <div style="display:inline-block; padding:12px; background:#fff; border-radius:16px; border:1px solid var(--border);">
+            <img src="data:image/png;base64,${data.pixQrCodeImage}" style="width:180px; height:180px; display:block; border-radius:8px;">
+          </div>
+          <p style="font-size:12px; color:var(--ink-soft); margin-top:14px; font-weight:500;">Escaneie com o app do seu banco, ou copie o código abaixo:</p>
         </div>
-        <div class="field"><textarea id="pixCode" readonly style="width:100%; min-height:70px; font-size:11px; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--bg-2); color:var(--ink);">${data.pixCopyPaste}</textarea></div>
-        <button class="btn primary" onclick="copiarPix()">Copiar código Pix</button>
+        <div class="field" style="margin-top:12px;"><textarea id="pixCode" readonly style="width:100%; min-height:64px; font-size:11px; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--bg-2); color:var(--ink); font-family:'IBM Plex Mono',monospace;">${data.pixCopyPaste}</textarea></div>
+        <button class="btn primary" onclick="copiarPix()">📋 Copiar código Pix</button>
       `;
     } else if(billingType === 'BOLETO'){
       resultBox.innerHTML = `
-        <p style="font-size:13px; margin-bottom:12px;">Boleto de <b class="num">${fmtMoney(data.value)}</b>, vencimento ${fmtDate(data.dueDate)}.</p>
+        <div class="plan-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16M8 4v16M12 4v16M14 4v16M18 4v16M20 4v16"/></svg></div>
+        <p style="font-size:13px; text-align:center; margin-bottom:16px;">Boleto de <b class="num">${fmtMoney(data.value)}</b><br>vencimento ${fmtDate(data.dueDate)}</p>
         <a class="btn primary" href="${data.bankSlipUrl}" target="_blank">Baixar boleto</a>
         <div style="height:8px"></div>
         <a class="btn ghost" href="${data.invoiceUrl}" target="_blank">Ver fatura completa</a>
       `;
     } else if(billingType === 'CREDIT_CARD'){
-      resultBox.innerHTML = `<p style="font-size:13px; margin-bottom:12px;">Toque abaixo pra inserir os dados do cartão (página segura da Asaas):</p>
+      resultBox.innerHTML = `
+        <div class="plan-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+        <p style="font-size:13px; text-align:center; margin-bottom:16px;">Toque abaixo pra inserir os dados do cartão numa página segura da Asaas:</p>
         <a class="btn primary" href="${data.checkoutUrl}" target="_blank">Pagar com cartão</a>`;
     }
   }catch(e){
+    resultBox.innerHTML = '';
     errBox.textContent = 'Não foi possível gerar a cobrança: ' + e.message;
     errBox.classList.add('show');
-    document.getElementById('metodoBotoes').style.display = 'flex';
-    resultBox.innerHTML = '';
+    irParaStep(2);
   }
 }
 
@@ -2178,9 +2352,7 @@ function renderDashboard(){
   } else {
     adiantNote.style.display = 'none';
   }
-  document.getElementById('headerSub').textContent = sales.length
-    ? `Você tem ${sales.length} ${sales.length===1?'venda lançada':'vendas lançadas'} e ${insts.length} parcelas no total.`
-    : `Centralize aqui o controle das comissões de ${brandConfig.brand1.name} e ${brandConfig.brand2.name}, parcela por parcela.`;
+  document.getElementById('headerSub').textContent = getInsightMessage();
 
   const pendentesOrdenadas = insts.filter(i=>i.status!=='Recebida');
   document.getElementById('heroNote').textContent = pendentesOrdenadas.length
@@ -2246,45 +2418,25 @@ function renderDashboard(){
 }
 
 function renderMonthlyChart(months, keys, maxVal){
-  const slotW = 62, barW = 15, gap = 5, chartH = 108, baseY = 122, topPad = 10;
-  const svgW = keys.length * slotW;
-  const svgH = 150;
-  const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-  const border = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
-  const inkSoft = getComputedStyle(document.documentElement).getPropertyValue('--ink-soft').trim();
-  const inkFaint = getComputedStyle(document.documentElement).getPropertyValue('--ink-faint').trim();
+  const hojeMk = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+  const d1 = new Date(); d1.setMonth(d1.getMonth()+1);
+  const proxMk = `${d1.getFullYear()}-${String(d1.getMonth()+1).padStart(2,'0')}`;
 
-  let bars = '';
-  keys.forEach((k, idx) => {
+  return keys.map(k=>{
     const m = months[k];
-    const cx = idx * slotW + slotW/2;
-    const hPrev = Math.max(2, (m.previsto/maxVal) * (chartH - topPad));
-    const hReceb = Math.max(0, (m.recebido/maxVal) * (chartH - topPad));
-    const x1 = cx - gap/2 - barW;
-    const x2 = cx + gap/2;
-    bars += `
-      <rect x="${x1}" y="${baseY - hPrev}" width="${barW}" height="${hPrev}" rx="4" fill="${border}"/>
-      <rect x="${x2}" y="${baseY - hReceb}" width="${barW}" height="${hReceb}" rx="4" fill="url(#barGrad)"/>
-      <text x="${cx}" y="${baseY + 18}" text-anchor="middle" font-size="9.5" font-weight="600" fill="${inkFaint}" font-family="Inter,sans-serif">${monthLabel(k)}</text>
+    const pctRecebido = m.previsto ? Math.min(100, (m.recebido/m.previsto*100)) : 0;
+    const tag = k === hojeMk ? '<span class="month-tag">Este mês</span>' : (k === proxMk ? '<span class="month-tag">Próximo mês</span>' : '');
+    return `
+      <div class="month-row">
+        <div class="month-row-top">
+          <div class="month-row-name">${monthLabel(k)} ${tag}</div>
+          <div class="month-row-value num">${fmtMoney(m.pendente)} <span class="unit">a receber</span></div>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pctRecebido.toFixed(1)}%"></div></div>
+        <div class="month-row-sub">Previsto <b class="num">${fmtMoney(m.previsto)}</b> · Recebido <b class="num" style="color:var(--good);">${fmtMoney(m.recebido)}</b></div>
+      </div>
     `;
-  });
-
-  return `
-    <svg viewBox="0 0 ${svgW} ${svgH}" width="100%" height="${svgH}" style="overflow:visible; display:block;">
-      <defs>
-        <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${primary}" stop-opacity="1"/>
-          <stop offset="100%" stop-color="${primary}" stop-opacity="0.75"/>
-        </linearGradient>
-      </defs>
-      <line x1="0" y1="${baseY}" x2="${svgW}" y2="${baseY}" stroke="${border}" stroke-width="1"/>
-      ${bars}
-    </svg>
-    <div style="display:flex; gap:16px; justify-content:center; margin-top:14px;">
-      <span style="font-size:11px; color:${inkSoft}; font-weight:600; display:flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:2px; background:${border}; display:inline-block;"></span>Previsto</span>
-      <span style="font-size:11px; color:${inkSoft}; font-weight:600; display:flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:2px; background:${primary}; display:inline-block;"></span>Recebido</span>
-    </div>
-  `;
+  }).join('');
 }
 
 function emptyState(title, sub, icon){
