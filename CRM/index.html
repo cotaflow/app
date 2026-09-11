@@ -1,1 +1,930 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>CotaFlow CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root{
+    --bg:#F5F6F9; --card:#FFFFFF; --bg-2:#FBFBFC; --ink:#12141A; --ink-soft:#5B6470; --ink-faint:#9BA1AC;
+    --border:#E4E7ED; --primary:#1E3A8A; --primary-btn:#1E3A8A; --primary-soft:#E7ECFA;
+    --good:#1B8F6B; --good-soft:#E4F5EE; --bad:#C23A3A; --bad-soft:#FBEAEA;
+    --gold:#B8862E; --gold-soft:#FBEFD8;
+    --r-sm:11px; --r-md:14px; --r-lg:18px;
+    --shadow:0 1px 3px rgba(16,20,26,.06), 0 1px 2px rgba(16,20,26,.04);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0B0D12; --card:#161A22; --bg-2:#0F1217; --ink:#F2F3F5; --ink-soft:#9AA1AC; --ink-faint:#6B7280;
+      --border:#242A35; --primary:#6E9AF0; --primary-btn:#3B5FC4; --primary-soft:#1C2740;
+      --good:#3FCB93; --good-soft:#123226; --bad:#E5686B; --bad-soft:#3A1E20;
+      --gold:#D9A94A; --gold-soft:#2E2412;
+      --shadow:none;
+    }
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; padding-bottom:80px; }
+  .num{ font-variant-numeric:tabular-nums; }
+  .hide{ display:none !important; }
 
+  /* ---------- topo ---------- */
+  .brandbar{ display:flex; align-items:center; gap:9px; padding:calc(16px + env(safe-area-inset-top)) 18px 14px; background:var(--bg); }
+  .brandmark{ width:30px; height:30px; border-radius:9px; background:var(--primary-btn); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .brandmark svg{ width:16px; height:16px; stroke:#fff; }
+  .brandname{ font-family:'Space Grotesk',sans-serif; font-size:15.5px; font-weight:700; }
+  .brandname span{ color:var(--primary); }
+  .brandname .tag{ font-size:10px; font-weight:700; color:var(--ink-faint); background:var(--bg-2); border:1px solid var(--border); padding:2px 7px; border-radius:100px; margin-left:6px; vertical-align:middle; }
+  #authUserBadge{
+    position:fixed; top:calc(14px + env(safe-area-inset-top)); right:14px; z-index:60;
+    width:38px; height:38px; border-radius:50%; background:var(--card); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow); cursor:pointer;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; color:var(--primary);
+  }
+
+  .wrap{ padding:0 16px; max-width:520px; margin:0 auto; }
+  h1,h2,h3{ font-family:'Space Grotesk',sans-serif; }
+  .section-title{ display:flex; justify-content:space-between; align-items:baseline; margin:20px 0 12px; }
+  .section-title h2{ font-size:17px; font-weight:700; }
+  .hint{ font-size:11.5px; color:var(--ink-faint); font-weight:600; }
+
+  /* ---------- botões ---------- */
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:6px; background:var(--ink); color:#fff; border:none; border-radius:var(--r-sm); padding:13px 16px; font-size:14.5px; font-weight:700; cursor:pointer; width:100%; font-family:'Inter',sans-serif; transition:transform .13s ease, opacity .13s ease; }
+  .btn:active{ transform:scale(0.97); opacity:.9; }
+  .btn.primary{ background:var(--primary-btn); }
+  .btn.ghost{ background:transparent; color:var(--ink-soft); border:1.5px solid var(--border); }
+  .btn.small{ width:auto; padding:8px 14px; font-size:12.5px; }
+  .icon-btn-inline{ display:inline-flex; align-items:center; gap:6px; text-decoration:none; }
+  .icon-btn-inline svg{ width:15px; height:15px; }
+
+  /* ---------- cards ---------- */
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:var(--r-lg); padding:16px; margin-bottom:12px; box-shadow:var(--shadow); }
+
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:6px; }
+  .field input, .field select, .field textarea{
+    width:100%; border:1.5px solid var(--border); border-radius:var(--r-sm); padding:11px 12px;
+    font-size:16px; font-family:'Inter',sans-serif; background:var(--bg-2); color:var(--ink); font-weight:500;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--primary); background:var(--card); }
+
+  /* ---------- funil (kanban horizontal) ---------- */
+  .funil-scroll{ display:flex; gap:12px; overflow-x:auto; padding:2px 16px 16px; scroll-snap-type:x mandatory; max-width:900px; margin:0 auto; scrollbar-width:none; -ms-overflow-style:none; }
+  .funil-scroll::-webkit-scrollbar{ display:none; }
+  .followup-banner{ display:flex; align-items:center; gap:10px; background:var(--gold-soft); color:var(--gold); border:1px solid var(--gold); border-radius:14px; padding:12px 14px; margin-bottom:14px; cursor:pointer; font-size:13px; font-weight:700; transition:transform .13s ease; }
+  .followup-banner:active{ transform:scale(0.98); }
+  .followup-banner svg{ width:19px; height:19px; flex-shrink:0; }
+  .funil-col{ flex:0 0 78%; scroll-snap-align:start; }
+  @media (min-width:700px){
+    .funil-col{ flex:0 0 260px; }
+  }
+  .funil-col-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:8px 10px; border-radius:11px; }
+  .funil-col-head .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:7px; }
+  .funil-col-head .t{ font-weight:700; font-size:13px; }
+  .funil-col-head .n{ font-size:11px; font-weight:700; background:rgba(255,255,255,.55); padding:2px 8px; border-radius:100px; }
+  .lead-card{ background:var(--card); border:1px solid var(--border); border-left-width:3px; border-radius:14px; padding:13px; margin-bottom:9px; cursor:pointer; transition:transform .13s ease; box-shadow:var(--shadow); touch-action:none; user-select:none; }
+  .funil-col.drop-hover{ background:var(--primary-soft); border-radius:16px; outline:2px dashed var(--primary); outline-offset:-2px; }
+  .lead-card:active{ transform:scale(0.97); }
+  .lead-card .ln{ font-weight:700; font-size:14px; }
+  .lead-card .ls{ font-size:11.5px; color:var(--ink-soft); margin-top:3px; font-weight:500; }
+  .lead-card .lv{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; color:var(--primary); margin-top:8px; }
+  .lead-card .lt{ font-size:10px; color:var(--ink-faint); margin-top:6px; font-weight:600; }
+
+  /* ---------- lista de leads ---------- */
+  .lead-row{ display:flex; align-items:center; gap:12px; padding:13px 2px; border-bottom:1px solid var(--border); cursor:pointer; }
+  .lead-row:last-child{ border-bottom:none; }
+  .lead-row-avatar{ width:38px; height:38px; border-radius:50%; background:var(--primary-soft); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:700; font-family:'Space Grotesk',sans-serif; flex-shrink:0; }
+  .lead-row-body{ flex:1; min-width:0; }
+  .lead-row-body .n{ font-weight:700; font-size:14px; }
+  .lead-row-body .s{ font-size:11.5px; color:var(--ink-soft); font-weight:500; }
+  .stage-pill{ font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; padding:3px 9px; border-radius:100px; white-space:nowrap; }
+
+  .filter-row{ display:flex; gap:7px; margin-bottom:14px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; -ms-overflow-style:none; }
+  .filter-row::-webkit-scrollbar{ display:none; }
+  .chip{ white-space:nowrap; font-size:12.5px; padding:8px 13px; border-radius:100px; border:1.5px solid var(--border); background:var(--card); color:var(--ink-soft); cursor:pointer; font-weight:600; transition:transform .13s ease; }
+  .chip:active{ transform:scale(0.94); }
+  .chip.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+
+  /* ---------- empty ---------- */
+  .empty{ text-align:center; padding:40px 20px; color:var(--ink-soft); }
+  .empty .empty-icon{ width:56px; height:56px; border-radius:16px; margin:0 auto 16px; background:linear-gradient(150deg, var(--primary-soft), var(--card)); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; }
+  .empty svg{ width:24px; height:24px; stroke:var(--primary); }
+  .empty .t{ font-weight:700; color:var(--ink); font-size:15px; margin-bottom:4px; }
+  .empty .s{ font-size:12.5px; font-weight:500; max-width:34ch; margin:0 auto; line-height:1.5; }
+
+  /* ---------- nav ---------- */
+  nav.tabs{ position:fixed; bottom:0; left:0; right:0; display:flex; background:var(--card); border-top:1px solid var(--border); padding:6px 6px calc(6px + env(safe-area-inset-bottom)); z-index:50; }
+  nav.tabs button{ flex:1; background:none; border:none; padding:6px 2px; font-family:'Inter',sans-serif; font-size:10.5px; font-weight:600; color:var(--ink-faint); display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; }
+  nav.tabs button svg{ width:21px; height:21px; }
+  nav.tabs button.active{ color:var(--primary); }
+
+  .view{ display:none; animation:fade .2s ease; }
+  .view.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+
+  .fab{ position:fixed; bottom:calc(78px + env(safe-area-inset-bottom)); right:18px; width:56px; height:56px; border-radius:50%; background:var(--primary-btn); color:#fff; border:none; box-shadow:0 8px 20px rgba(30,58,138,.35); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:55; transition:transform .13s ease; }
+  .fab:active{ transform:scale(0.9); }
+  .fab svg{ width:24px; height:24px; }
+
+  /* ---------- modal zoom ---------- */
+  .zoom-overlay{ position:fixed; inset:0; z-index:2100; background:rgba(8,11,16,.6); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px); display:flex; align-items:flex-end; justify-content:center; padding:0; opacity:0; visibility:hidden; transition:opacity .22s ease; }
+  .zoom-overlay.show{ opacity:1; visibility:visible; }
+  .zoom-card{ background:var(--card); border-radius:22px 22px 0 0; width:100%; max-width:480px; max-height:88vh; overflow-y:auto; padding:22px 20px calc(22px + env(safe-area-inset-bottom)); transform:translateY(100%); transition:transform .28s cubic-bezier(.22,1,.36,1); }
+  .zoom-overlay.show .zoom-card{ transform:translateY(0); }
+  .zoom-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .zoom-head h3{ font-size:18px; font-weight:700; }
+  .close-x{ width:30px; height:30px; border-radius:50%; background:var(--bg-2); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-soft); flex-shrink:0; }
+  .close-x svg{ width:15px; height:15px; }
+
+  .note-item{ padding:10px 0; border-bottom:1px solid var(--border); }
+  .note-item:last-child{ border-bottom:none; }
+  .note-item .nd{ font-size:10.5px; color:var(--ink-faint); font-weight:700; margin-bottom:3px; }
+  .note-item .nt{ font-size:13px; font-weight:500; line-height:1.5; }
+
+  .zoom-row{ display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--border); gap:10px; }
+  .zoom-row:last-child{ border-bottom:none; }
+  .zoom-row .zr-name{ font-weight:700; font-size:13.5px; }
+  .zoom-row .zr-sub{ font-size:11px; color:var(--ink-soft); font-weight:500; margin-top:2px; }
+  .zoom-row .zr-val{ text-align:right; font-weight:700; font-size:12.5px; white-space:nowrap; }
+
+  .toast{ position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(6px); background:var(--ink); color:#fff; padding:11px 18px; border-radius:100px; font-size:13px; font-weight:600; z-index:3000; opacity:0; pointer-events:none; transition:all .25s ease; box-shadow:0 8px 20px rgba(0,0,0,.2); }
+
+  /* ---------- comemoração: lead convertido em venda ---------- */
+  .celebrate-wrap{
+    position:fixed; inset:0; z-index:4000;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+    pointer-events:none; background:rgba(8,11,16,0);
+    animation:celebrate-bg-in .2s ease forwards;
+  }
+  .celebrate-wrap.out{ animation:celebrate-bg-out .35s ease forwards; }
+  @keyframes celebrate-bg-in{ to{ background:rgba(8,11,16,.4); } }
+  @keyframes celebrate-bg-out{ to{ background:rgba(8,11,16,0); opacity:0; } }
+  .celebrate-circle{
+    width:84px; height:84px; border-radius:50%; background:var(--good);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 12px 32px rgba(27,143,107,.4);
+    animation:celebrate-pop .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  .celebrate-circle svg{ width:38px; height:38px; stroke:#fff; }
+  @keyframes celebrate-pop{
+    0%{ transform:scale(0); opacity:0; }
+    60%{ transform:scale(1.15); opacity:1; }
+    100%{ transform:scale(1); }
+  }
+  .celebrate-text{ background:var(--ink); color:#fff; padding:9px 18px; border-radius:100px; font-size:14px; font-weight:700; text-align:center; animation:celebrate-text-in .35s ease .1s backwards; }
+  @keyframes celebrate-text-in{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .spinner{ width:26px; height:26px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  #loadingScreen{ position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; z-index:5000; }
+  #loadingScreen .txt{ font-size:13px; color:var(--ink-soft); font-weight:600; }
+
+  /* ---------- auth ---------- */
+  #authScreen{ position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; padding:24px; z-index:100; }
+  #authScreen.hide{ display:none; }
+  .auth-box{ width:100%; max-width:360px; }
+  .auth-logo{ display:flex; align-items:center; gap:9px; margin-bottom:28px; }
+  .auth-title{ font-size:22px; font-weight:700; font-family:'Space Grotesk',sans-serif; margin-bottom:6px; }
+  .auth-sub{ font-size:13px; color:var(--ink-soft); margin-bottom:20px; font-weight:500; }
+  .auth-error{ background:var(--bad-soft); color:var(--bad); font-size:12.5px; font-weight:600; padding:10px 12px; border-radius:10px; margin-bottom:14px; display:none; }
+  .auth-error.show{ display:block; }
+</style>
+</head>
+<body>
+
+<div id="loadingScreen">
+  <div class="spinner"></div>
+  <div class="txt">Carregando…</div>
+</div>
+
+<div id="authScreen" class="hide">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="brandmark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="brandname">Cota<span>Flow</span> <span class="tag">CRM</span></div>
+    </div>
+    <div class="auth-title">Entrar</div>
+    <div class="auth-sub">Use o mesmo login do app CotaFlow.</div>
+    <div class="auth-error" id="authError"></div>
+    <div class="field"><label>E-mail</label><input type="email" id="authEmail" placeholder="voce@email.com" autocomplete="email"></div>
+    <div class="field"><label>Senha</label><input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="btn primary" onclick="submitAuth()">Entrar</button>
+  </div>
+</div>
+
+<div id="appRoot" style="display:none;">
+
+<div class="brandbar">
+  <div class="brandmark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+  <div class="brandname">Cota<span>Flow</span> <span class="tag">CRM</span></div>
+</div>
+<div id="authUserBadge">?</div>
+
+<main>
+  <!-- ===================== FUNIL ===================== -->
+  <section class="view active" id="view-funil">
+    <div class="wrap">
+      <div class="section-title"><h2>Funil de vendas</h2><span class="hint" id="funilTotal"></span></div>
+      <div class="followup-banner" id="followupBanner" style="display:none;" onclick="showFollowupsModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="followupBannerText"></span>
+      </div>
+    </div>
+    <div class="funil-scroll" id="funilScroll"></div>
+  </section>
+
+  <!-- ===================== LEADS (lista) ===================== -->
+  <section class="view" id="view-leads">
+    <div class="wrap">
+      <div class="section-title"><h2>Meus leads</h2><span class="hint" id="leadsCount"></span></div>
+      <div class="filter-row" id="leadsFilterRow"></div>
+      <div class="card" style="padding:6px 16px;" id="leadsListCard"></div>
+    </div>
+  </section>
+
+  <!-- ===================== EQUIPE (admin) ===================== -->
+  <section class="view" id="view-equipe">
+    <div class="wrap">
+      <div class="section-title"><h2>Equipe</h2></div>
+      <button class="btn ghost" onclick="loadTeamLeads()" style="margin-bottom:14px;">↻ Atualizar</button>
+      <div id="equipeLeadsCard"></div>
+    </div>
+  </section>
+</main>
+
+<button class="fab" onclick="openLeadForm()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="funil" onclick="switchTab('funil')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"/></svg>
+    Funil
+  </button>
+  <button class="tab-btn" data-tab="leads" onclick="switchTab('leads')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+    Leads
+  </button>
+  <button class="tab-btn" data-tab="equipe" onclick="switchTab('equipe')" id="navEquipe" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Equipe
+  </button>
+</nav>
+
+</div>
+
+<!-- ===== MODAL: novo lead / editar lead ===== -->
+<div class="zoom-overlay" id="leadFormOverlay" onclick="if(event.target===this) closeZoom('leadFormOverlay')">
+  <div class="zoom-card">
+    <div class="zoom-head"><h3 id="leadFormTitle">Novo lead</h3><button class="close-x" onclick="closeZoom('leadFormOverlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <input type="hidden" id="leadId">
+    <div class="field"><label>Nome</label><input type="text" id="leadNome" placeholder="Nome do cliente"></div>
+    <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="leadTelefone" placeholder="(11) 99999-9999"></div>
+    <div class="field"><label>E-mail (opcional)</label><input type="email" id="leadEmail" placeholder="cliente@email.com"></div>
+    <div class="field"><label>Interesse (marca, modelo, produto)</label><input type="text" id="leadInteresse" placeholder="Ex: Consórcio Chevrolet Onix"></div>
+    <div class="field"><label>Marca / administradora (pra virar venda depois)</label><select id="leadMarca"><option value="">Selecione…</option></select></div>
+    <div class="field"><label>Valor estimado (R$)</label><input type="number" step="0.01" id="leadValor" placeholder="0,00"></div>
+    <div class="field"><label>Próximo follow-up</label><input type="datetime-local" id="leadFollowup"></div>
+    <button class="btn primary" onclick="saveLead()">Salvar lead</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: detalhe do lead ===== -->
+<div class="zoom-overlay" id="leadDetailOverlay" onclick="if(event.target===this) closeZoom('leadDetailOverlay')">
+  <div class="zoom-card" id="leadDetailContent"></div>
+</div>
+
+<!-- ===== MODAL: converter lead ganho em venda ===== -->
+<div class="zoom-overlay" id="convertOverlay" onclick="if(event.target===this) closeZoom('convertOverlay')">
+  <div class="zoom-card">
+    <div class="zoom-head"><h3>Converter em venda</h3><button class="close-x" onclick="closeZoom('convertOverlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <p style="font-size:13px; color:var(--ink-soft); font-weight:500; margin-bottom:16px;">
+      <b id="convertLeadNome" style="color:var(--ink);"></b> foi marcado como <b style="color:var(--good);">Vendido</b>.
+      Quer já lançar isso como venda no CotaFlow, com as parcelas de comissão calculadas sozinhas?
+    </p>
+    <input type="hidden" id="convertLeadId">
+    <div class="field"><label>Marca / administradora</label><select id="convertMarca"><option value="">Selecione…</option></select></div>
+    <div class="field"><label>Valor da venda (R$)</label><input type="number" step="0.01" id="convertValor"></div>
+    <div class="field"><label>Data da venda</label><input type="date" id="convertData"></div>
+    <button class="btn primary" onclick="confirmarConversao()">Converter em venda</button>
+    <div style="height:8px"></div>
+    <button class="btn ghost" onclick="closeZoom('convertOverlay')">Agora não</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: follow-ups pendentes ===== -->
+<div class="zoom-overlay" id="followupsOverlay" onclick="if(event.target===this) closeZoom('followupsOverlay')">
+  <div class="zoom-card" id="followupsContent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCyVWVGe0vvqLFowtCLGvKWBBh7Z6tzCNU",
+  authDomain: "cotaflow-3b4ea.firebaseapp.com",
+  projectId: "cotaflow-3b4ea",
+  storageBucket: "cotaflow-3b4ea.firebasestorage.app",
+  messagingSenderId: "712940576985",
+  appId: "1:712940576985:web:6887f3f5d19541be2f9ec8"
+};
+
+let currentUser = null;
+let dragState = null;
+document.getElementById('funilScroll').addEventListener('pointerdown', (e)=>onFunilPointerDown(e));
+let isAdminUser = false;
+let companyId = null;
+let userBrandConfig = {};
+let currentTab = 'funil';
+let leads = [];
+let leadsFilter = 'todos';
+
+const ESTAGIOS = [
+  { key:'novo',        nome:'Novo lead',     cor:'#5B6470' },
+  { key:'contato',     nome:'Contato feito',  cor:'#1E3A8A' },
+  { key:'proposta',    nome:'Proposta enviada', cor:'#B8862E' },
+  { key:'negociacao',  nome:'Negociação',     cor:'#B8862E' },
+  { key:'ganho',       nome:'Vendido',        cor:'#1B8F6B' },
+  { key:'perdido',     nome:'Perdido',        cor:'#C23A3A' }
+];
+
+const fmtMoney = (v) => 'R$ ' + (v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const AVATAR_PALETTE = ['#1E3A8A','#B8862E','#1B8F6B','#8B3FA8','#C2662E','#2E7DA6','#A83F6E'];
+function avatarColor(name){
+  let hash = 0;
+  for(let i=0;i<(name||'').length;i++) hash = name.charCodeAt(i) + ((hash<<5)-hash);
+  return AVATAR_PALETTE[Math.abs(hash) % AVATAR_PALETTE.length];
+}
+const fmtDate = (iso) => { if(!iso) return '-'; const d = new Date(iso); return d.toLocaleDateString('pt-BR'); };
+const escapeHtml = (str) => {
+  if(str == null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+};
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function celebrarConversao(nome, valor){
+  const wrap = document.createElement('div');
+  wrap.className = 'celebrate-wrap';
+  wrap.innerHTML = `
+    <div class="celebrate-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <div class="celebrate-text">${escapeHtml(nome)} virou venda no CotaFlow<br><span style="opacity:.8; font-weight:600;">${fmtMoney(valor)}</span></div>
+  `;
+  document.body.appendChild(wrap);
+  setTimeout(()=>{ wrap.classList.add('out'); }, 1400);
+  setTimeout(()=>{ wrap.remove(); }, 1750);
+}
+function openZoom(id){ document.getElementById(id).classList.add('show'); }
+function closeZoom(id){ document.getElementById(id).classList.remove('show'); }
+
+function switchTab(tab){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+tab).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  currentTab = tab;
+  if(tab === 'equipe') loadTeamLeads();
+}
+
+/* ============================================================
+   AUTENTICAÇÃO — mesmo Firebase Auth do app CotaFlow
+   ============================================================ */
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+function showAuthError(msg){
+  const el = document.getElementById('authError');
+  el.textContent = msg; el.classList.add('show');
+}
+function traduzErroFirebase(err){
+  const map = {
+    'auth/invalid-email': 'E-mail inválido.',
+    'auth/user-not-found': 'Não existe conta com esse e-mail.',
+    'auth/wrong-password': 'Senha incorreta.',
+    'auth/invalid-credential': 'E-mail ou senha incorretos.',
+    'auth/too-many-requests': 'Muitas tentativas. Aguarde um pouco.'
+  };
+  return map[err.code] || 'Não foi possível entrar. Tente novamente.';
+}
+async function submitAuth(){
+  document.getElementById('authError').classList.remove('show');
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if(!email || !password){ showAuthError('Preencha e-mail e senha.'); return; }
+  try{ await auth.signInWithEmailAndPassword(email, password); }
+  catch(err){ showAuthError(traduzErroFirebase(err)); }
+}
+function logout(){ if(confirm('Sair da sua conta?')) auth.signOut(); }
+
+auth.onAuthStateChanged(async (user) => {
+  currentUser = user;
+  if(user){
+    document.getElementById('loadingScreen').classList.add('hide');
+    document.getElementById('authScreen').classList.add('hide');
+    document.getElementById('appRoot').style.display = '';
+    document.getElementById('authUserBadge').textContent = (user.email||'?').charAt(0).toUpperCase();
+    document.getElementById('authUserBadge').onclick = logout;
+
+    try{
+      const userDoc = await db.collection('users').doc(user.uid).get();
+      const data = userDoc.exists ? userDoc.data() : {};
+      companyId = data.companyId || user.uid;
+      userBrandConfig = data.brandConfig ? JSON.parse(data.brandConfig) : {};
+      populateMarcaSelect();
+    }catch(e){ companyId = user.uid; userBrandConfig = {}; }
+
+    try{
+      const adminDoc = await db.collection('admins').doc(user.uid).get();
+      isAdminUser = adminDoc.exists;
+    }catch(e){ isAdminUser = false; }
+    document.getElementById('navEquipe').style.display = isAdminUser ? 'flex' : 'none';
+
+    loadLeads();
+  } else {
+    document.getElementById('loadingScreen').classList.add('hide');
+    document.getElementById('authScreen').classList.remove('hide');
+    document.getElementById('appRoot').style.display = 'none';
+  }
+});
+
+/* ============================================================
+   LEADS — coleção própria no Firestore: leads/{leadId}
+   ============================================================ */
+async function loadLeads(){
+  try{
+    const snap = await db.collection('leads').where('ownerId','==', currentUser.uid).get();
+    leads = [];
+    snap.forEach(doc => leads.push({ id: doc.id, ...doc.data() }));
+    leads.sort((a,b) => (b.atualizadoEm||'').localeCompare(a.atualizadoEm||''));
+    renderFunil();
+    renderLeadsList();
+    checkFollowups();
+  }catch(e){
+    showToast('Erro ao carregar leads: ' + e.message);
+  }
+}
+
+/* ============================================================
+   FOLLOW-UPS — aviso visual sempre que abre o app +
+   tentativa de notificação do navegador (só funciona com o app aberto,
+   sem servidor de push não dá pra avisar com o app fechado)
+   ============================================================ */
+function leadsComFollowupPendente(){
+  const agora = new Date();
+  return leads.filter(l => l.proximoContato && new Date(l.proximoContato) <= agora && l.estagio !== 'ganho' && l.estagio !== 'perdido');
+}
+
+function checkFollowups(){
+  const pendentes = leadsComFollowupPendente();
+  const banner = document.getElementById('followupBanner');
+  if(pendentes.length === 0){
+    banner.style.display = 'none';
+    return;
+  }
+  banner.style.display = 'flex';
+  document.getElementById('followupBannerText').textContent =
+    pendentes.length === 1 ? '1 follow-up pendente — toque pra ver' : `${pendentes.length} follow-ups pendentes — toque pra ver`;
+
+  if(!window._followupNotified && 'Notification' in window){
+    window._followupNotified = true;
+    if(Notification.permission === 'granted'){
+      new Notification('CotaFlow CRM', { body: `Você tem ${pendentes.length} follow-up(s) pendente(s).` });
+    } else if(Notification.permission !== 'denied'){
+      Notification.requestPermission().then(perm=>{
+        if(perm === 'granted') new Notification('CotaFlow CRM', { body: `Você tem ${pendentes.length} follow-up(s) pendente(s).` });
+      });
+    }
+  }
+}
+
+function showFollowupsModal(){
+  const pendentes = leadsComFollowupPendente();
+  const rows = pendentes.map(l => `
+    <div class="zoom-row" onclick="closeZoom('followupsOverlay'); openLeadDetail('${l.id}')" style="cursor:pointer;">
+      <div>
+        <div class="zr-name">${escapeHtml(l.nome)}</div>
+        <div class="zr-sub">${escapeHtml(l.interesse||'')}</div>
+      </div>
+      <div class="zr-val" style="color:var(--gold);">${new Date(l.proximoContato).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+    </div>
+  `).join('') || `<p style="font-size:12.5px; color:var(--ink-soft); text-align:center; padding:20px 0;">Nenhum follow-up pendente.</p>`;
+
+  document.getElementById('followupsContent').innerHTML = `
+    <div class="zoom-head"><h3>Follow-ups pendentes</h3><button class="close-x" onclick="closeZoom('followupsOverlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    ${rows}
+  `;
+  openZoom('followupsOverlay');
+}
+
+
+function populateMarcaSelect(){
+  const sel = document.getElementById('leadMarca');
+  const keys = Object.keys(userBrandConfig);
+  sel.innerHTML = '<option value="">Selecione…</option>' +
+    keys.map(k => `<option value="${k}">${escapeHtml(userBrandConfig[k].name)}</option>`).join('');
+}
+
+function openLeadForm(leadToEdit){
+  document.getElementById('leadFormTitle').textContent = leadToEdit ? 'Editar lead' : 'Novo lead';
+  document.getElementById('leadId').value = leadToEdit ? leadToEdit.id : '';
+  document.getElementById('leadNome').value = leadToEdit ? leadToEdit.nome : '';
+  document.getElementById('leadTelefone').value = leadToEdit ? (leadToEdit.telefone||'') : '';
+  document.getElementById('leadEmail').value = leadToEdit ? (leadToEdit.email||'') : '';
+  document.getElementById('leadInteresse').value = leadToEdit ? (leadToEdit.interesse||'') : '';
+  document.getElementById('leadMarca').value = leadToEdit ? (leadToEdit.marca||'') : '';
+  document.getElementById('leadValor').value = leadToEdit ? (leadToEdit.valorEstimado||'') : '';
+  document.getElementById('leadFollowup').value = leadToEdit ? (leadToEdit.proximoContato||'') : '';
+  openZoom('leadFormOverlay');
+}
+
+async function saveLead(){
+  const nome = document.getElementById('leadNome').value.trim();
+  if(!nome){ showToast('Digite o nome do lead'); return; }
+  const id = document.getElementById('leadId').value;
+  const payload = {
+    nome,
+    telefone: document.getElementById('leadTelefone').value.trim(),
+    email: document.getElementById('leadEmail').value.trim(),
+    interesse: document.getElementById('leadInteresse').value.trim(),
+    marca: document.getElementById('leadMarca').value,
+    valorEstimado: parseFloat(document.getElementById('leadValor').value) || 0,
+    proximoContato: document.getElementById('leadFollowup').value || null,
+    atualizadoEm: new Date().toISOString()
+  };
+  try{
+    if(id){
+      await db.collection('leads').doc(id).set(payload, {merge:true});
+    } else {
+      payload.ownerId = currentUser.uid;
+      payload.companyId = companyId;
+      payload.estagio = 'novo';
+      payload.criadoEm = new Date().toISOString();
+      payload.notas = [];
+      await db.collection('leads').add(payload);
+    }
+    closeZoom('leadFormOverlay');
+    showToast('Lead salvo!');
+    loadLeads();
+  }catch(e){
+    showToast('Erro ao salvar: ' + e.message);
+  }
+}
+
+async function moverEstagio(leadId, novoEstagio){
+  try{
+    await db.collection('leads').doc(leadId).set({ estagio: novoEstagio, atualizadoEm: new Date().toISOString() }, {merge:true});
+    showToast('Lead movido para "' + ESTAGIOS.find(e=>e.key===novoEstagio).nome + '"');
+    closeZoom('leadDetailOverlay');
+    await loadLeads();
+    if(novoEstagio === 'ganho'){
+      const lead = leads.find(l=>l.id===leadId);
+      if(lead && !lead.convertidoEmVenda){
+        if(lead.marca && lead.valorEstimado > 0){
+          await converterAutomatico(leadId);
+        } else {
+          abrirConfirmacaoConversao(leadId);
+        }
+      }
+    }
+  }catch(e){
+    showToast('Erro: ' + e.message);
+  }
+}
+
+async function converterAutomatico(leadId){
+  const lead = leads.find(l=>l.id===leadId);
+  if(!lead) return;
+  try{
+    const userRef = db.collection('users').doc(currentUser.uid);
+    const snap = await userRef.get();
+    const udata = snap.exists ? snap.data() : {};
+    const salesArr = udata.sales ? JSON.parse(udata.sales) : [];
+    salesArr.push({
+      id: 'crm_' + Date.now(),
+      marca: lead.marca,
+      cliente: lead.nome,
+      data: new Date().toISOString().slice(0,10),
+      valor: lead.valorEstimado
+    });
+    await userRef.set({ sales: JSON.stringify(salesArr) }, {merge:true});
+    await db.collection('leads').doc(leadId).set({ convertidoEmVenda: true }, {merge:true});
+    celebrarConversao(lead.nome, lead.valorEstimado);
+    loadLeads();
+  }catch(e){
+    showToast('Erro ao lançar venda automaticamente: ' + e.message);
+  }
+}
+
+function abrirConfirmacaoConversao(leadId){
+  const lead = leads.find(l=>l.id===leadId) || (window._teamLeadsCache||[]).find(l=>l.id===leadId);
+  if(!lead) return;
+  document.getElementById('convertLeadId').value = leadId;
+  document.getElementById('convertLeadNome').textContent = lead.nome;
+  const sel = document.getElementById('convertMarca');
+  const keys = Object.keys(userBrandConfig);
+  sel.innerHTML = '<option value="">Selecione…</option>' + keys.map(k => `<option value="${k}">${escapeHtml(userBrandConfig[k].name)}</option>`).join('');
+  sel.value = lead.marca || '';
+  document.getElementById('convertValor').value = lead.valorEstimado || '';
+  document.getElementById('convertData').value = new Date().toISOString().slice(0,10);
+  openZoom('convertOverlay');
+}
+
+async function confirmarConversao(){
+  const leadId = document.getElementById('convertLeadId').value;
+  const marca = document.getElementById('convertMarca').value;
+  const valor = parseFloat(document.getElementById('convertValor').value);
+  const data = document.getElementById('convertData').value;
+  if(!marca){ showToast('Escolha a marca/administradora'); return; }
+  if(!valor || valor <= 0){ showToast('Digite o valor da venda'); return; }
+  const lead = leads.find(l=>l.id===leadId) || (window._teamLeadsCache||[]).find(l=>l.id===leadId);
+  try{
+    const userRef = db.collection('users').doc(currentUser.uid);
+    const snap = await userRef.get();
+    const udata = snap.exists ? snap.data() : {};
+    const salesArr = udata.sales ? JSON.parse(udata.sales) : [];
+    salesArr.push({ id: 'crm_' + Date.now(), marca, cliente: lead.nome, data, valor });
+    await userRef.set({ sales: JSON.stringify(salesArr) }, {merge:true});
+    await db.collection('leads').doc(leadId).set({ convertidoEmVenda: true }, {merge:true});
+    closeZoom('convertOverlay');
+    celebrarConversao(lead.nome, valor);
+    loadLeads();
+  }catch(e){
+    showToast('Erro ao converter: ' + e.message);
+  }
+}
+
+async function addNota(leadId){
+  const input = document.getElementById('novaNotaTexto');
+  const texto = input.value.trim();
+  if(!texto) return;
+  const lead = leads.find(l=>l.id===leadId);
+  const notas = lead.notas || [];
+  notas.push({ data: new Date().toISOString(), texto });
+  try{
+    await db.collection('leads').doc(leadId).set({ notas, atualizadoEm: new Date().toISOString() }, {merge:true});
+    input.value = '';
+    showToast('Anotação adicionada');
+    await loadLeads();
+    openLeadDetail(leadId);
+  }catch(e){
+    showToast('Erro: ' + e.message);
+  }
+}
+
+async function excluirLead(leadId){
+  if(!confirm('Excluir esse lead? Essa ação não pode ser desfeita.')) return;
+  try{
+    await db.collection('leads').doc(leadId).delete();
+    closeZoom('leadDetailOverlay');
+    showToast('Lead excluído');
+    loadLeads();
+  }catch(e){
+    showToast('Erro: ' + e.message);
+  }
+}
+
+function openLeadDetail(leadId){
+  const lead = leads.find(l=>l.id===leadId) || (window._teamLeadsCache||[]).find(l=>l.id===leadId);
+  if(!lead) return;
+  const est = ESTAGIOS.find(e=>e.key===lead.estagio) || ESTAGIOS[0];
+  const isOwn = lead.ownerId === currentUser.uid;
+
+  const notasHtml = (lead.notas||[]).slice().reverse().map(n=>`
+    <div class="note-item">
+      <div class="nd">${new Date(n.data).toLocaleString('pt-BR')}</div>
+      <div class="nt">${escapeHtml(n.texto)}</div>
+    </div>
+  `).join('') || `<p style="font-size:12px; color:var(--ink-soft); text-align:center; padding:14px 0;">Nenhuma anotação ainda.</p>`;
+
+  const estagioBotoes = ESTAGIOS.map(e=>`
+    <button class="chip ${e.key===lead.estagio?'active':''}" onclick="moverEstagio('${lead.id}','${e.key}')" style="${e.key===lead.estagio?'':''}">${e.nome}</button>
+  `).join('');
+
+  document.getElementById('leadDetailContent').innerHTML = `
+    <div class="zoom-head">
+      <h3>${escapeHtml(lead.nome)}</h3>
+      <button class="close-x" onclick="closeZoom('leadDetailOverlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+      ${lead.telefone ? `<a class="btn ghost small icon-btn-inline" href="https://wa.me/55${lead.telefone.replace(/\D/g,'')}" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WhatsApp</a>` : ''}
+      ${isOwn ? `<button class="btn ghost small icon-btn-inline" onclick="openLeadForm(leads.find(l=>l.id==='${lead.id}'))"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Editar</button>` : ''}
+      ${isOwn ? `<button class="btn ghost small icon-btn-inline" onclick="excluirLead('${lead.id}')" style="color:var(--bad); border-color:var(--bad-soft);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"/></svg>Excluir</button>` : ''}
+    </div>
+    ${lead.interesse ? `<p style="font-size:13px; margin-bottom:6px;"><b>Interesse:</b> ${escapeHtml(lead.interesse)}</p>` : ''}
+    ${lead.valorEstimado ? `<p style="font-size:13px; margin-bottom:6px;"><b>Valor estimado:</b> <span class="num">${fmtMoney(lead.valorEstimado)}</span></p>` : ''}
+    ${lead.email ? `<p style="font-size:13px; margin-bottom:14px;"><b>E-mail:</b> ${escapeHtml(lead.email)}</p>` : ''}
+
+    <p style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--ink-faint); margin:16px 0 8px;">Estágio do funil</p>
+    <div class="filter-row" style="margin-bottom:6px;">${estagioBotoes}</div>
+
+    <p style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--ink-faint); margin:20px 0 8px;">Anotações</p>
+    ${isOwn ? `
+    <div class="field" style="display:flex; gap:8px; align-items:flex-start;">
+      <input type="text" id="novaNotaTexto" placeholder="Anotar uma ligação, follow-up..." style="flex:1;" onkeydown="if(event.key==='Enter') addNota('${lead.id}')">
+      <button class="btn primary small" onclick="addNota('${lead.id}')">Add</button>
+    </div>` : ''}
+    ${notasHtml}
+  `;
+  openZoom('leadDetailOverlay');
+}
+
+/* ============================================================
+   RENDER: FUNIL (kanban horizontal)
+   ============================================================ */
+function renderFunil(){
+  document.getElementById('funilTotal').textContent = leads.length + (leads.length===1?' lead':' leads');
+  const scroll = document.getElementById('funilScroll');
+  scroll.innerHTML = ESTAGIOS.map(est=>{
+    const doEstagio = leads.filter(l=>l.estagio===est.key);
+    const cards = doEstagio.map(l=>`
+      <div class="lead-card" data-lead-id="${l.id}" style="border-left-color:${est.cor};">
+        <div class="ln">${escapeHtml(l.nome)}</div>
+        ${l.interesse ? `<div class="ls">${escapeHtml(l.interesse)}</div>` : ''}
+        ${l.valorEstimado ? `<div class="lv">${fmtMoney(l.valorEstimado)}</div>` : ''}
+        <div class="lt">Atualizado ${fmtDate(l.atualizadoEm)}</div>
+      </div>
+    `).join('') || `<p style="font-size:12px; color:var(--ink-faint); text-align:center; padding:20px 0;">Vazio</p>`;
+    return `
+      <div class="funil-col" data-estagio="${est.key}">
+        <div class="funil-col-head" style="background:${est.cor}1c; color:${est.cor};">
+          <div><span class="dot" style="background:${est.cor};"></span><span class="t">${est.nome}</span></div>
+          <span class="n">${doEstagio.length}</span>
+        </div>
+        ${cards}
+      </div>
+    `;
+  }).join('');
+}
+
+/* ============================================================
+   ARRASTAR E SOLTAR — Pointer Events (funciona com touch e mouse)
+   ============================================================ */
+function leadAtualEstagio(leadId){
+  const l = leads.find(x=>x.id===leadId);
+  return l ? l.estagio : null;
+}
+
+function onFunilPointerDown(e){
+  const card = e.target.closest('.lead-card');
+  if(!card) return;
+  dragState = { leadId: card.dataset.leadId, startX: e.clientX, startY: e.clientY, dragging:false, card, clone:null };
+  document.addEventListener('pointermove', onFunilPointerMove);
+  document.addEventListener('pointerup', onFunilPointerUp, { once:true });
+}
+
+function onFunilPointerMove(e){
+  if(!dragState) return;
+  const dx = e.clientX - dragState.startX;
+  const dy = e.clientY - dragState.startY;
+  if(!dragState.dragging && Math.hypot(dx,dy) > 10){
+    dragState.dragging = true;
+    const rect = dragState.card.getBoundingClientRect();
+    const clone = dragState.card.cloneNode(true);
+    clone.style.position = 'fixed';
+    clone.style.top = rect.top + 'px';
+    clone.style.left = rect.left + 'px';
+    clone.style.width = rect.width + 'px';
+    clone.style.zIndex = 5000;
+    clone.style.pointerEvents = 'none';
+    clone.style.opacity = '0.95';
+    clone.style.transform = 'scale(1.04) rotate(-2deg)';
+    clone.style.boxShadow = '0 22px 40px rgba(0,0,0,.28)';
+    clone.style.transition = 'none';
+    document.body.appendChild(clone);
+    dragState.clone = clone;
+    dragState.offsetX = dragState.startX - rect.left;
+    dragState.offsetY = dragState.startY - rect.top;
+    dragState.card.style.opacity = '0.25';
+  }
+  if(dragState.dragging){
+    dragState.clone.style.left = (e.clientX - dragState.offsetX) + 'px';
+    dragState.clone.style.top = (e.clientY - dragState.offsetY) + 'px';
+    document.querySelectorAll('.funil-col').forEach(c=>c.classList.remove('drop-hover'));
+    const colUnder = document.elementFromPoint(e.clientX, e.clientY)?.closest('.funil-col');
+    if(colUnder) colUnder.classList.add('drop-hover');
+  }
+}
+
+function onFunilPointerUp(e){
+  document.removeEventListener('pointermove', onFunilPointerMove);
+  if(!dragState) return;
+  const wasDragging = dragState.dragging;
+  const leadId = dragState.leadId;
+  if(wasDragging){
+    const colUnder = document.elementFromPoint(e.clientX, e.clientY)?.closest('.funil-col');
+    if(dragState.card) dragState.card.style.opacity = '';
+    if(dragState.clone) dragState.clone.remove();
+    document.querySelectorAll('.funil-col').forEach(c=>c.classList.remove('drop-hover'));
+    if(colUnder && colUnder.dataset.estagio && colUnder.dataset.estagio !== leadAtualEstagio(leadId)){
+      moverEstagio(leadId, colUnder.dataset.estagio);
+    }
+  }
+  dragState = null;
+  if(!wasDragging){
+    openLeadDetail(leadId);
+  }
+}
+
+
+/* ============================================================
+   RENDER: LISTA DE LEADS
+   ============================================================ */
+function setLeadsFilter(f){
+  leadsFilter = f;
+  renderLeadsList();
+}
+function renderLeadsList(){
+  document.getElementById('leadsCount').textContent = leads.length + (leads.length===1?' lead':' leads');
+  const filterRow = document.getElementById('leadsFilterRow');
+  filterRow.innerHTML = `<button class="chip ${leadsFilter==='todos'?'active':''}" onclick="setLeadsFilter('todos')">Todos</button>` +
+    ESTAGIOS.map(e=>`<button class="chip ${leadsFilter===e.key?'active':''}" onclick="setLeadsFilter('${e.key}')">${e.nome}</button>`).join('');
+
+  const filtrados = leadsFilter==='todos' ? leads : leads.filter(l=>l.estagio===leadsFilter);
+  const card = document.getElementById('leadsListCard');
+  if(filtrados.length===0){
+    card.innerHTML = emptyState('Nenhum lead aqui', 'Toque no botão + pra cadastrar seu primeiro lead.');
+    return;
+  }
+  card.innerHTML = filtrados.map(l=>{
+    const est = ESTAGIOS.find(e=>e.key===l.estagio) || ESTAGIOS[0];
+    return `
+      <div class="lead-row" onclick="openLeadDetail('${l.id}')">
+        <div class="lead-row-avatar" style="background:${avatarColor(l.nome)}22; color:${avatarColor(l.nome)};">${(l.nome||'?').charAt(0).toUpperCase()}</div>
+        <div class="lead-row-body">
+          <div class="n">${escapeHtml(l.nome)}</div>
+          <div class="s">${escapeHtml(l.interesse || l.telefone || 'Sem detalhes')}</div>
+        </div>
+        <span class="stage-pill" style="background:${est.cor}22; color:${est.cor};">${est.nome}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function emptyState(title, sub){
+  return `<div class="empty">
+    <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
+    <div class="t">${title}</div><div class="s">${sub}</div>
+  </div>`;
+}
+
+/* ============================================================
+   EQUIPE (admin) — leads de todos os vendedores da mesma empresa
+   ============================================================ */
+async function loadTeamLeads(){
+  if(!isAdminUser) return;
+  const card = document.getElementById('equipeLeadsCard');
+  card.innerHTML = `<div class="empty"><div class="spinner" style="margin:0 auto;"></div></div>`;
+  try{
+    const snap = await db.collection('leads').where('companyId','==', companyId).get();
+    const teamLeads = [];
+    snap.forEach(doc => teamLeads.push({ id: doc.id, ...doc.data() }));
+    window._teamLeadsCache = teamLeads;
+
+    if(teamLeads.length===0){
+      card.innerHTML = emptyState('Nenhum lead na equipe', 'Assim que os vendedores cadastrarem leads, eles aparecem aqui.');
+      return;
+    }
+
+    const porVendedor = {};
+    teamLeads.forEach(l=>{
+      if(!porVendedor[l.ownerId]) porVendedor[l.ownerId] = [];
+      porVendedor[l.ownerId].push(l);
+    });
+
+    card.innerHTML = Object.keys(porVendedor).map(uid=>{
+      const lista = porVendedor[uid];
+      const ganhos = lista.filter(l=>l.estagio==='ganho').length;
+      const rows = lista.map(l=>{
+        const est = ESTAGIOS.find(e=>e.key===l.estagio) || ESTAGIOS[0];
+        return `<div class="lead-row" onclick="openLeadDetail('${l.id}')">
+          <div class="lead-row-avatar" style="background:${avatarColor(l.nome)}22; color:${avatarColor(l.nome)};">${(l.nome||'?').charAt(0).toUpperCase()}</div>
+          <div class="lead-row-body"><div class="n">${escapeHtml(l.nome)}</div><div class="s">${escapeHtml(l.interesse||'')}</div></div>
+          <span class="stage-pill" style="background:${est.cor}22; color:${est.cor};">${est.nome}</span>
+        </div>`;
+      }).join('');
+      return `<div class="card">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="font-weight:700; font-size:13px;">${escapeHtml(uid.slice(0,8))}…</span>
+          <span class="hint">${lista.length} leads · ${ganhos} ganhos</span>
+        </div>
+        ${rows}
+      </div>`;
+    }).join('');
+  }catch(e){
+    card.innerHTML = emptyState('Erro ao carregar', 'Verifique se as regras do Firestore liberam leitura para administradores na coleção "leads".');
+  }
+}
+</script>
+</body>
+</html>
