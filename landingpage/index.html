@@ -1,1 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CotaFlow — Você vende. O CotaFlow controla o que você tem a receber.</title>
+<meta name="description" content="Cadastre suas vendas e saiba exatamente quanto você tem para receber, parcela por parcela. Feito para quem vive de comissão.">
+<meta property="og:title" content="CotaFlow — Você vende. O CotaFlow controla o que você tem a receber.">
+<meta property="og:description" content="Cadastre suas vendas e saiba exatamente quanto você tem para receber, parcela por parcela. Feito para quem vive de comissão.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cotaflow.github.io/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CotaFlow — Você vende. O CotaFlow controla o que você tem a receber.">
+<meta name="twitter:description" content="Cadastre suas vendas e saiba exatamente quanto você tem para receber, parcela por parcela. Feito para quem vive de comissão.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F6F9;
+    --card:#FFFFFF;
+    --ink:#12141A;
+    --ink-soft:#5B6470;
+    --ink-faint:#9BA1AC;
+    --border:#E4E7ED;
+    --primary:#1E3A8A;
+    --primary-btn:#1E3A8A;
+    --primary-dark:#122A66;
+    --primary-soft:#E7ECFA;
+    --gold:#B8862E;
+    --gold-soft:#F7EDD8;
+    --good:#1B8F6B;
+    --good-soft:#E3F5ED;
+    --r-lg:22px;
+    --r-md:14px;
+    --shadow:0 1px 2px rgba(16,24,40,.04), 0 10px 30px rgba(16,24,40,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0F1216;
+      --card:#181C22;
+      --ink:#F2F3F5;
+      --ink-soft:#9AA1AC;
+      --ink-faint:#666E7A;
+      --border:#2A2F38;
+      --primary:#6E9AF0;
+      --primary-btn:#3F65B8;
+      --primary-dark:#2A4C99;
+      --primary-soft:#1C2740;
+      --gold:#E0AC52;
+      --gold-soft:#332715;
+      --good:#3FCB93;
+      --good-soft:#123528;
+      --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; background:var(--paper); }
+  body{
+    margin:0; background:var(--paper); color:var(--ink); min-height:100vh;
+    font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+  }
+  .display{ font-family:'Space Grotesk',sans-serif; }
+  .num{ font-family:'IBM Plex Mono',monospace; }
+  h1,h2,h3{ margin:0; font-family:'Space Grotesk',sans-serif; letter-spacing:-0.01em; }
+  p{ margin:0; }
+  a{ color:inherit; }
+  .wrap{ max-width:1080px; margin:0 auto; padding:0 24px; }
+  section{ padding:88px 0; }
+  @media (max-width:640px){ section{ padding:56px 0; } .wrap{ padding:0 18px; } }
 
+  /* ---------- botões ---------- */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    border-radius:100px; padding:15px 26px; font-weight:700; font-size:15px;
+    cursor:pointer; border:none; text-decoration:none; font-family:'Inter',sans-serif;
+    transition:transform .15s ease;
+  }
+  .btn:active{ transform:scale(.97); }
+  .btn.primary{ background:var(--primary-btn); color:#fff; }
+  .btn.gold{ background:var(--gold); color:#fff; }
+  .btn.ghost{ background:transparent; color:var(--ink); border:1.5px solid var(--border); }
+  .btn.ghost:hover{ border-color:var(--primary); color:var(--primary); }
+  .btn.sm{ padding:10px 18px; font-size:13.5px; }
+
+  /* ---------- nav ---------- */
+  nav.top{
+    position:sticky; top:0; z-index:50;
+    background:var(--paper);
+    border-bottom:1px solid var(--border);
+  }
+  nav.top .wrap{ display:flex; align-items:center; justify-content:space-between; padding-top:14px; padding-bottom:14px; }
+  .brand{ display:flex; align-items:center; gap:9px; }
+  .brandmark{ width:30px; height:30px; border-radius:9px; background:linear-gradient(160deg,var(--primary-btn),var(--primary-dark)); display:flex; align-items:center; justify-content:center; }
+  .brandmark svg{ width:16px; height:16px; }
+  .brandname{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; }
+  .brandname span{ color:var(--primary); }
+  .nav-actions{ display:flex; align-items:center; gap:10px; }
+  .nav-actions .link{ font-size:13.5px; font-weight:600; color:var(--ink-soft); text-decoration:none; }
+  @media (max-width:560px){ .nav-actions .link{ display:none; } }
+
+  /* ---------- hero ---------- */
+  .hero{ padding:72px 0 60px; }
+  .hero .grid{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:56px; align-items:center; }
+  @media (max-width:860px){ .hero .grid{ grid-template-columns:1fr; gap:40px; } }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:6px; text-transform:uppercase; letter-spacing:.09em;
+    font-size:11.5px; font-weight:700; color:var(--primary); background:var(--primary-soft);
+    padding:6px 12px; border-radius:100px;
+  }
+  .hero h1{ font-size:clamp(32px,4.6vw,50px); line-height:1.08; margin-top:18px; font-weight:700; }
+  .hero h1 .accent{ color:var(--primary); }
+  .hero .sub{ font-size:17px; color:var(--ink-soft); line-height:1.55; margin-top:20px; max-width:46ch; font-family:'Inter',sans-serif; }
+  .hero .ctas{ display:flex; gap:12px; margin-top:30px; flex-wrap:wrap; }
+  .hero .microcopy{ font-size:12.5px; color:var(--ink-faint); margin-top:14px; font-weight:500; }
+
+  /* ---------- stub visual (elemento assinatura) ---------- */
+  .stub-card{
+    background:var(--card); border-radius:var(--r-lg); box-shadow:var(--shadow);
+    padding:26px 24px; position:relative; max-width:360px; margin:0 auto;
+  }
+  .stub-card::before, .stub-card::after{
+    content:''; position:absolute; width:22px; height:22px; background:var(--paper);
+    border-radius:50%; left:50%; transform:translateX(-50%);
+  }
+  .stub-card .top-lbl{ font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-weight:700; }
+  .stub-card .big-num{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:34px; color:var(--primary); margin-top:6px; }
+  .stub-card .stub-note{ font-size:12px; color:var(--ink-soft); margin-top:4px; font-weight:500; }
+  .stub-divider{ border-top:1.5px dashed var(--border); margin:20px 0; position:relative; }
+  .stub-row{ display:flex; justify-content:space-between; font-size:13px; padding:7px 0; }
+  .stub-row .l{ color:var(--ink-soft); font-weight:500; }
+  .stub-row .v{ font-family:'IBM Plex Mono',monospace; font-weight:600; }
+  .stub-row .v.pend{ color:var(--gold); }
+  .stub-row .v.ok{ color:var(--good); }
+
+  /* ---------- dor ---------- */
+  .pain-head{ text-align:center; max-width:640px; margin:0 auto 44px; }
+  .pain-head h2{ font-size:clamp(24px,3.2vw,34px); font-weight:700; }
+  .pain-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media (max-width:760px){ .pain-grid{ grid-template-columns:1fr; } }
+  .pain-card{ background:var(--card); border:1px solid var(--border); border-radius:var(--r-md); padding:22px; }
+  .pain-card .ic{ width:36px; height:36px; border-radius:10px; background:var(--gold-soft); display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+  .pain-card .ic svg{ width:18px; height:18px; stroke:var(--gold); }
+  .pain-card p{ font-size:14px; color:var(--ink-soft); line-height:1.5; font-weight:500; }
+  .pain-card strong{ color:var(--ink); }
+
+  /* ---------- personas ---------- */
+  .personas{ background:var(--card); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .personas .label{ text-align:center; font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); margin-bottom:20px; }
+  .persona-row{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+  .pill{ background:var(--paper); border:1px solid var(--border); border-radius:100px; padding:9px 18px; font-size:13.5px; font-weight:600; color:var(--ink); }
+
+  /* ---------- como funciona ---------- */
+  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:44px; }
+  @media (max-width:760px){ .steps{ grid-template-columns:1fr; } }
+  .step .n{ font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; color:var(--primary); background:var(--primary-soft); width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+  .step h3{ font-size:17px; margin-top:16px; font-weight:700; }
+  .step p{ font-size:13.5px; color:var(--ink-soft); margin-top:8px; line-height:1.55; font-weight:500; }
+
+  /* ---------- fundadores banner ---------- */
+  .founders{
+    background:linear-gradient(120deg, var(--primary-dark), var(--primary-btn));
+    color:#fff; border-radius:var(--r-lg); padding:34px 30px; margin-top:70px;
+    display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;
+  }
+  .founders .tag{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:#CFE0FF; }
+  .founders h3{ font-size:22px; margin-top:8px; font-family:'Space Grotesk',sans-serif; font-weight:700; }
+  .founders p{ font-size:13.5px; color:#CFE0FF; margin-top:6px; font-weight:500; max-width:44ch; }
+  .founders .price{ font-family:'IBM Plex Mono',monospace; font-size:15px; }
+
+  /* ---------- pricing ---------- */
+  .pricing-head{ text-align:center; max-width:600px; margin:0 auto 46px; }
+  .pricing-head h2{ font-size:clamp(24px,3.2vw,34px); font-weight:700; }
+  .pricing-head p{ font-size:15px; color:var(--ink-soft); margin-top:10px; font-weight:500; }
+  .plans{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:start; }
+  @media (max-width:860px){ .plans{ grid-template-columns:1fr; max-width:380px; margin:0 auto; } }
+
+  .plan{
+    background:var(--card); border:1.5px dashed var(--border); border-radius:18px;
+    padding:26px 22px; position:relative;
+  }
+  .plan::before, .plan::after{
+    content:''; position:absolute; width:18px; height:18px; background:var(--paper);
+    border-radius:50%; left:50%; transform:translateX(-50%);
+  }
+  .plan::before{ top:-9px; } .plan::after{ bottom:-9px; }
+  .plan.featured{
+    border:1.5px solid var(--primary-btn); background:var(--primary-btn); color:#fff;
+    transform:scale(1.03); box-shadow:0 16px 40px rgba(30,58,138,.28);
+  }
+  .plan.featured::before, .plan.featured::after{ background:var(--paper); }
+  .badge-top{
+    position:absolute; top:-13px; left:50%; transform:translateX(-50%);
+    background:var(--gold); color:#fff; font-size:11px; font-weight:700; padding:5px 14px;
+    border-radius:100px; white-space:nowrap; letter-spacing:.03em;
+  }
+  .plan .pname{ font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); }
+  .plan.featured .pname{ color:#CFE0FF; }
+  .plan .pdesc{ font-size:12.5px; color:var(--ink-soft); margin-top:4px; font-weight:500; }
+  .plan.featured .pdesc{ color:#CFE0FF; }
+  .plan .pprice{ margin-top:18px; display:flex; align-items:baseline; gap:6px; }
+  .plan .pprice .v{ font-family:'IBM Plex Mono',monospace; font-size:32px; font-weight:700; }
+  .plan .pprice .m{ font-size:13px; color:var(--ink-soft); font-weight:600; }
+  .plan.featured .pprice .m{ color:#CFE0FF; }
+  .plan .pold{ font-size:12px; color:var(--ink-faint); text-decoration:line-through; margin-top:4px; font-weight:500; }
+  .plan.featured .pold{ color:#9FB6E8; }
+  .plan .pnote{ font-size:12px; color:var(--ink-faint); margin-top:4px; font-weight:500; }
+  .plan .pfeat{ list-style:none; padding:0; margin:20px 0 24px; display:flex; flex-direction:column; gap:9px; }
+  .plan .pfeat li{ font-size:13px; display:flex; gap:8px; align-items:flex-start; font-weight:500; }
+  .plan .pfeat svg{ width:15px; height:15px; flex-shrink:0; margin-top:2px; stroke:var(--good); }
+  .plan.featured .pfeat svg{ stroke:#8FE0BE; }
+  .plan .btn{ width:100%; }
+
+  /* ---------- implementação ---------- */
+  .impl{ display:flex; gap:28px; align-items:center; background:var(--card); border:1px solid var(--border); border-radius:var(--r-lg); padding:32px; }
+  @media (max-width:760px){ .impl{ flex-direction:column; align-items:flex-start; } }
+  .impl .icwrap{ width:56px; height:56px; border-radius:16px; background:var(--gold-soft); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .impl .icwrap svg{ width:26px; height:26px; stroke:var(--gold); }
+  .impl h3{ font-size:19px; font-weight:700; }
+  .impl p{ font-size:13.5px; color:var(--ink-soft); margin-top:8px; line-height:1.55; font-weight:500; max-width:56ch; }
+  .impl .price-tag{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:20px; color:var(--gold); margin-top:2px; }
+
+  /* ---------- faq ---------- */
+  .faq{ max-width:760px; margin:0 auto; }
+  .faq-item{ border-bottom:1px solid var(--border); padding:18px 0; }
+  .faq-item summary{
+    cursor:pointer; font-weight:700; font-size:15.5px; list-style:none;
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+  }
+  .faq-item summary::-webkit-details-marker{ display:none; }
+  .faq-item summary::after{
+    content:'+'; font-size:22px; line-height:1; color:var(--ink-faint); font-weight:400; flex-shrink:0;
+  }
+  .faq-item[open] summary::after{ content:'–'; }
+  .faq-item p{ font-size:14px; color:var(--ink-soft); margin-top:12px; line-height:1.6; font-weight:500; max-width:62ch; }
+
+  /* ---------- cta final ---------- */
+  .final-cta{ text-align:center; }
+  .final-cta h2{ font-size:clamp(26px,3.6vw,38px); font-weight:700; max-width:22ch; margin:0 auto; }
+  .final-cta p{ font-size:15px; color:var(--ink-soft); margin-top:14px; font-weight:500; }
+  .final-cta .ctas{ display:flex; justify-content:center; gap:12px; margin-top:26px; flex-wrap:wrap; }
+
+  footer{ border-top:1px solid var(--border); padding:34px 0; }
+  footer .wrap{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+  footer .fine{ font-size:12px; color:var(--ink-faint); font-weight:500; }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="wrap">
+    <div class="brand">
+      <div class="brandmark"><svg viewBox="0 0 24 24" fill="none"><path d="M4 15c2.5 0 3-3 5.5-3s3 3 5.5 3 3-6 5.5-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="7.2" r="1.6" fill="#fff"/></svg></div>
+      <div class="brandname">Cota<span>Flow</span></div>
+    </div>
+    <div class="nav-actions">
+      <a class="link" href="https://cotaflow.github.io/app/">Entrar</a>
+      <a class="btn primary sm" href="#planos">Testar grátis</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="wrap grid">
+    <div>
+      <span class="eyebrow">Para quem vive de comissão</span>
+      <h1>Você vende. <span class="accent">O CotaFlow controla</span> o que você tem a receber.</h1>
+      <p class="sub">Você sabe, agora mesmo, quanto tem pra receber das suas vendas? Cadastre a venda uma vez — o CotaFlow calcula cada parcela, cada vencimento, e o total exato que ainda vai cair na sua conta.</p>
+      <div class="ctas">
+        <a class="btn primary" href="https://cotaflow.github.io/app/">Testar grátis por 7 dias →</a>
+        <a class="btn ghost" href="#planos">Ver planos</a>
+      </div>
+      <div class="microcopy">Sem cartão de crédito. Use suas próprias vendas no teste.</div>
+    </div>
+    <div>
+      <div class="stub-card">
+        <div class="top-lbl">A receber (pendente)</div>
+        <div class="big-num num" id="heroNum">R$ 0,00</div>
+        <div class="stub-note">calculado automaticamente pelas suas parcelas</div>
+        <div class="stub-divider"></div>
+        <div class="stub-row"><span class="l">Venda · Onix 0km</span><span class="v pend">Parc. 2/4</span></div>
+        <div class="stub-row"><span class="l">Venda · Consórcio 80k</span><span class="v ok">Recebida</span></div>
+        <div class="stub-row"><span class="l">Venda · Mobi 0km</span><span class="v pend">Parc. 1/4</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="pain-head">
+      <h2>A pergunta que ninguém consegue responder de cabeça</h2>
+    </div>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H3v10h6zM21 3h-6v18h6zM15 7H9v14h6z"/></svg></div>
+        <p><strong>Comissão espalhada</strong> em print, caderno e mensagem — sem um lugar só pra olhar e saber quanto falta.</p>
+      </div>
+      <div class="pain-card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <p><strong>Parcela que passa batido</strong> — você só percebe que não recebeu quando já venceu há semanas.</p>
+      </div>
+      <div class="pain-card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10M18 20V4M6 20v-4"/></svg></div>
+        <p><strong>Diferença entre o previsto e o real</strong> — o que era pra cair na conta nem sempre é o que realmente vem.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="personas">
+  <div class="wrap">
+    <div class="label">Feito para quem recebe comissão parcelada</div>
+    <div class="persona-row">
+      <span class="pill">Vendedores de consórcio</span>
+      <span class="pill">Vendedores de veículos</span>
+      <span class="pill">Representantes comerciais</span>
+      <span class="pill">Corretores</span>
+      <span class="pill">Vendedores de seguros</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="pain-head">
+      <h2>Como funciona</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="n">01</div>
+        <h3>Cadastre sua venda</h3>
+        <p>Marca, cliente, valor. Leva menos de um minuto.</p>
+      </div>
+      <div class="step">
+        <div class="n">02</div>
+        <h3>O CotaFlow calcula as parcelas</h3>
+        <p>Percentual de cada parcela e data de vencimento, na hora, sem planilha.</p>
+      </div>
+      <div class="step">
+        <div class="n">03</div>
+        <h3>Acompanhe o que falta receber</h3>
+        <p>Painel sempre atualizado: previsto, recebido e pendente, mês a mês.</p>
+      </div>
+    </div>
+
+    <div class="founders">
+      <div>
+        <div class="tag">CotaFlow Fundadores</div>
+        <h3>Assine agora e trave esse preço pra sempre.</h3>
+        <p>Vale pra qualquer plano. Depois das primeiras 100 contas, o valor sobe pra quem entrar depois — mas quem já é fundador continua pagando o mesmo, sempre.</p>
+      </div>
+      <a class="btn gold" href="https://cotaflow.github.io/app/">Garantir minha vaga →</a>
+    </div>
+  </div>
+</section>
+
+<section id="planos">
+  <div class="wrap">
+    <div class="pricing-head">
+      <h2>Planos</h2>
+      <p>7 dias grátis em qualquer plano. Cancele quando quiser.</p>
+    </div>
+    <div class="plans">
+
+      <div class="plan">
+        <div class="pname">Start</div>
+        <div class="pdesc">Pra quem quer sair da planilha.</div>
+        <div class="pprice"><span class="v num">R$19,90</span><span class="m">/mês</span></div>
+        <div class="pold num">de R$29,90</div>
+        <ul class="pfeat">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Cadastro de vendas</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Cálculo automático das parcelas</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Controle de recebimentos</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Regras de comissão por marca</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Histórico, dashboard e backup</li>
+        </ul>
+        <a class="btn ghost" href="https://cotaflow.github.io/app/">Testar grátis</a>
+      </div>
+
+      <div class="plan featured">
+        <span class="badge-top">Mais vendido ⭐</span>
+        <div class="pname">Pro</div>
+        <div class="pdesc">Pra quem quer visão completa do seu dinheiro.</div>
+        <div class="pprice"><span class="v num">R$39,90</span><span class="m">/mês</span></div>
+        <div class="pold num">&nbsp;</div>
+        <ul class="pfeat">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Tudo do Start</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Relatórios em Excel e PDF</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Visão mensal e previsão de recebimentos</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Filtros avançados</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Suporte prioritário</li>
+        </ul>
+        <a class="btn gold" href="https://cotaflow.github.io/app/">Testar grátis</a>
+      </div>
+
+      <div class="plan">
+        <div class="pname">Equipe</div>
+        <div class="pdesc">Pra pequenas equipes comerciais.</div>
+        <div class="pprice"><span class="v num">R$149,90</span><span class="m">/mês</span></div>
+        <div class="pnote num">até 5 usuários</div>
+        <ul class="pfeat">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Tudo do Pro</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Login individual por vendedor</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Painel gerencial da equipe</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Total a receber consolidado</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>+R$29,90 por usuário extra</li>
+        </ul>
+        <a class="btn ghost" href="https://cotaflow.github.io/app/">Falar sobre o plano Equipe</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="impl">
+      <div class="icwrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+      <div>
+        <div class="price-tag">R$97 <span style="font-size:13px; color:var(--ink-soft); font-weight:600;">pagamento único</span></div>
+        <h3 style="margin-top:6px;">Não quer configurar sozinho?</h3>
+        <p>A gente configura as regras de comissão, cadastra suas marcas, ajusta percentuais, parcelas e vencimentos, e te orienta no primeiro uso. Você só começa a usar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="pricing-head">
+      <h2>Perguntas frequentes</h2>
+    </div>
+    <div class="faq">
+      <details class="faq-item">
+        <summary>Meus dados de comissão ficam seguros?</summary>
+        <p>Sim. Suas vendas e valores ficam vinculados só à sua conta — ninguém mais tem acesso, a não ser que você mesmo adicione outras pessoas no plano Equipe.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Posso cancelar quando quiser?</summary>
+        <p>Sim, sem fidelidade. Você cancela quando quiser direto no app.</p>
+      </details>
+      <details class="faq-item">
+        <summary>O que acontece depois dos 7 dias grátis?</summary>
+        <p>Você escolhe um plano pra continuar usando. Sem assinar, o acesso ao painel fica bloqueado — mas suas vendas cadastradas continuam salvas.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Preciso saber mexer em planilha ou sistema pra usar?</summary>
+        <p>Não. Você cadastra a venda — marca, cliente, valor — e o CotaFlow calcula parcelas e vencimentos sozinho.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Serve pro meu tipo de venda?</summary>
+        <p>Se você recebe comissão parcelada — consórcio, veículos, seguros, representação comercial ou corretagem — o CotaFlow foi feito pra isso.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <div class="wrap">
+    <h2>Teste o CotaFlow por 7 dias usando suas próprias vendas.</h2>
+    <p>Cadastre o que você já vendeu este mês e veja, na hora, quanto já recebeu e quanto ainda falta.</p>
+    <div class="ctas">
+      <a class="btn primary" href="https://cotaflow.github.io/app/">Testar grátis agora →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="brand">
+      <div class="brandmark"><svg viewBox="0 0 24 24" fill="none"><path d="M4 15c2.5 0 3-3 5.5-3s3 3 5.5 3 3-6 5.5-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="7.2" r="1.6" fill="#fff"/></svg></div>
+      <div class="brandname">Cota<span>Flow</span></div>
+    </div>
+    <div class="fine">© 2026 CotaFlow. Você vende. O CotaFlow controla o que você tem a receber.</div>
+  </div>
+</footer>
+
+<script>
+  // contagem do número de destaque no hero — único momento de movimento da página
+  (function(){
+    const el = document.getElementById('heroNum');
+    const target = 12480;
+    const dur = 1200;
+    const start = performance.now();
+    function fmt(v){ return 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+    function tick(now){
+      const p = Math.min(1, (now-start)/dur);
+      const eased = 1 - Math.pow(1-p, 3);
+      el.textContent = fmt(target*eased);
+      if(p<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
+</script>
+
+</body>
+</html>
