@@ -19,13 +19,20 @@
     --shadow:0 1px 3px rgba(16,20,26,.06), 0 1px 2px rgba(16,20,26,.04);
   }
   @media (prefers-color-scheme: dark){
-    :root{
+    :root:not([data-theme="light"]){
       --bg:#0B0D12; --card:#161A22; --bg-2:#0F1217; --ink:#F2F3F5; --ink-soft:#9AA1AC; --ink-faint:#6B7280;
       --border:#242A35; --primary:#6E9AF0; --primary-btn:#3B5FC4; --primary-soft:#1C2740;
       --good:#3FCB93; --good-soft:#123226; --bad:#E5686B; --bad-soft:#3A1E20;
       --gold:#D9A94A; --gold-soft:#2E2412;
       --shadow:none;
     }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B0D12; --card:#161A22; --bg-2:#0F1217; --ink:#F2F3F5; --ink-soft:#9AA1AC; --ink-faint:#6B7280;
+    --border:#242A35; --primary:#6E9AF0; --primary-btn:#3B5FC4; --primary-soft:#1C2740;
+    --good:#3FCB93; --good-soft:#123226; --bad:#E5686B; --bad-soft:#3A1E20;
+    --gold:#D9A94A; --gold-soft:#2E2412;
+    --shadow:none;
   }
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body{ margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; padding-bottom:80px; }
@@ -37,6 +44,39 @@
   .brandmark{ width:30px; height:30px; border-radius:9px; background:var(--primary-btn); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .brandmark svg{ width:16px; height:16px; stroke:#fff; }
   .brandname{ font-family:'Space Grotesk',sans-serif; font-size:15.5px; font-weight:700; }
+  .hamburger-btn{ width:34px; height:34px; border-radius:10px; border:1px solid var(--border); background:var(--card); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:transform .13s ease; }
+  .hamburger-btn:active{ transform:scale(0.9); }
+  .hamburger-btn svg{ width:18px; height:18px; stroke:var(--ink); }
+
+  .drawer-overlay{ position:fixed; inset:0; background:rgba(8,11,16,.45); z-index:900; opacity:0; visibility:hidden; transition:opacity .22s ease; }
+  .drawer-overlay.show{ opacity:1; visibility:visible; }
+  .drawer{ position:fixed; top:0; left:0; bottom:0; width:78%; max-width:300px; z-index:901; background:var(--card); box-shadow:8px 0 30px rgba(0,0,0,.15); transform:translateX(-100%); transition:transform .25s cubic-bezier(.22,1,.36,1); display:flex; flex-direction:column; }
+  .drawer.show{ transform:translateX(0); }
+  .drawer-head{ display:flex; align-items:center; gap:9px; padding:calc(18px + env(safe-area-inset-top)) 16px 18px; border-bottom:1px solid var(--border); }
+  .drawer-body{ padding:12px; display:flex; flex-direction:column; gap:2px; flex:1; overflow-y:auto; }
+  .drawer-item{ display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:none; border:none; padding:13px 10px; border-radius:12px; font-family:'Inter',sans-serif; font-size:14.5px; font-weight:600; color:var(--ink); cursor:pointer; transition:background .13s ease; }
+  .drawer-item:active{ background:var(--bg-2); }
+  .drawer-item svg{ width:19px; height:19px; stroke:var(--ink-soft); flex-shrink:0; }
+  .drawer-item.danger{ color:var(--bad); }
+  .drawer-item.danger svg{ stroke:var(--bad); }
+  .drawer-divider{ height:1px; background:var(--border); margin:10px 4px; }
+
+  .simple-header{ display:flex; align-items:center; gap:12px; padding:calc(16px + env(safe-area-inset-top)) 18px 16px; }
+  .simple-header h1{ font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; }
+
+  .settings-row{ display:flex; align-items:center; justify-content:space-between; padding:14px 2px; border-bottom:1px solid var(--border); }
+  .settings-row:last-child{ border-bottom:none; }
+  .settings-row .sl{ font-weight:600; font-size:13.5px; }
+  .settings-row .ss{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; font-weight:500; }
+  .theme-toggle{ display:flex; background:var(--bg-2); border-radius:100px; padding:3px; gap:2px; }
+  .theme-toggle button{ border:none; background:none; padding:7px 13px; border-radius:100px; font-size:12px; font-weight:700; color:var(--ink-soft); cursor:pointer; font-family:'Inter',sans-serif; }
+  .theme-toggle button.active{ background:var(--card); color:var(--ink); box-shadow:var(--shadow); }
+  .support-link{ display:flex; align-items:center; gap:13px; width:100%; text-align:left; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:10px; text-decoration:none; cursor:pointer; transition:transform .13s ease; }
+  .support-link:active{ transform:scale(0.98); }
+  .support-link .si{ width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .support-link .si svg{ width:20px; height:20px; }
+  .support-link .st{ font-weight:700; font-size:14px; color:var(--ink); }
+  .support-link .ss2{ font-size:11.5px; color:var(--ink-soft); font-weight:500; }
   .brandname span{ color:var(--primary); }
   .brandname .tag{ font-size:10px; font-weight:700; color:var(--ink-faint); background:var(--bg-2); border:1px solid var(--border); padding:2px 7px; border-radius:100px; margin-left:6px; vertical-align:middle; }
   #authUserBadge{
@@ -78,7 +118,7 @@
   .followup-banner{ display:flex; align-items:center; gap:10px; background:var(--gold-soft); color:var(--gold); border:1px solid var(--gold); border-radius:14px; padding:12px 14px; margin-bottom:14px; cursor:pointer; font-size:13px; font-weight:700; transition:transform .13s ease; }
   .followup-banner:active{ transform:scale(0.98); }
   .followup-banner svg{ width:19px; height:19px; flex-shrink:0; }
-  .funil-col{ flex:0 0 78%; scroll-snap-align:start; }
+  .funil-col{ flex:0 0 78%; scroll-snap-align:start; max-height:calc(100vh - 260px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
   @media (min-width:700px){
     .funil-col{ flex:0 0 260px; }
   }
@@ -86,7 +126,15 @@
   .funil-col-head .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:7px; }
   .funil-col-head .t{ font-weight:700; font-size:13px; }
   .funil-col-head .n{ font-size:11px; font-weight:700; background:rgba(255,255,255,.55); padding:2px 8px; border-radius:100px; }
-  .lead-card{ background:var(--card); border:1px solid var(--border); border-left-width:3px; border-radius:14px; padding:13px; margin-bottom:9px; cursor:pointer; transition:transform .13s ease; box-shadow:var(--shadow); touch-action:none; user-select:none; }
+  .lead-card{ position:relative; background:var(--card); border:1px solid var(--border); border-left-width:3px; border-radius:14px; padding:13px 40px 13px 13px; margin-bottom:9px; cursor:pointer; transition:transform .13s ease; box-shadow:var(--shadow); }
+  .lead-card:active{ transform:scale(0.98); }
+  .drag-handle{
+    position:absolute; top:8px; right:8px; width:32px; height:32px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center; touch-action:none; cursor:grab;
+    color:var(--ink-faint); background:var(--bg-2);
+  }
+  .drag-handle:active{ cursor:grabbing; background:var(--primary-soft); color:var(--primary); }
+  .drag-handle svg{ width:16px; height:16px; pointer-events:none; }
   .funil-col.drop-hover{ background:var(--primary-soft); border-radius:16px; outline:2px dashed var(--primary); outline-offset:-2px; }
   .lead-card:active{ transform:scale(0.97); }
   .lead-card .ln{ font-weight:700; font-size:14px; }
@@ -220,11 +268,50 @@
 
 <div id="appRoot" style="display:none;">
 
-<div class="brandbar">
+<div class="brandbar" id="brandbar">
+  <button class="hamburger-btn" onclick="openDrawer()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
   <div class="brandmark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
   <div class="brandname">Cota<span>Flow</span> <span class="tag">CRM</span></div>
 </div>
 <div id="authUserBadge">?</div>
+
+<!-- ===================== MENU LATERAL ===================== -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div class="brandmark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+    <div class="brandname">Cota<span>Flow</span> <span class="tag">CRM</span></div>
+    <button class="close-x" onclick="closeDrawer()" style="margin-left:auto;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="drawer-body">
+    <button class="drawer-item" onclick="switchTab('ajuda'); closeDrawer();">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+      Ajuda
+    </button>
+    <button class="drawer-item" onclick="switchTab('suporte'); closeDrawer();">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Suporte
+    </button>
+    <button class="drawer-item" onclick="switchTab('config'); closeDrawer();">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3H9.8l-.4 2.5a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.5h4.4l.4-2.5a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.6c.07-.4.1-.8.1-1.2z"/></svg>
+      Configurações
+    </button>
+    <div class="drawer-divider"></div>
+    <button class="drawer-item danger" onclick="logout(); closeDrawer();">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+      Sair da conta
+    </button>
+  </div>
+</div>
+
+<div class="simple-header" id="simpleHeader" style="display:none;">
+  <button class="hamburger-btn" onclick="openDrawer()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <h1 id="simpleHeaderTitle">Configurações</h1>
+</div>
 
 <main>
   <!-- ===================== FUNIL ===================== -->
@@ -254,6 +341,77 @@
       <div class="section-title"><h2>Equipe</h2></div>
       <button class="btn ghost" onclick="loadTeamLeads()" style="margin-bottom:14px;">↻ Atualizar</button>
       <div id="equipeLeadsCard"></div>
+    </div>
+  </section>
+
+  <!-- ===================== AJUDA ===================== -->
+  <section class="view" id="view-ajuda">
+    <div class="wrap">
+      <div class="card">
+        <h3 style="margin-bottom:10px;">Como funciona o funil</h3>
+        <p style="font-size:13px; color:var(--ink-soft); line-height:1.6; font-weight:500;">
+          Cada lead passa por 6 estágios: <b>Novo lead</b> → <b>Contato feito</b> → <b>Proposta enviada</b> →
+          <b>Negociação</b> → <b>Vendido</b> ou <b>Perdido</b>. Toque num cartão pra ver os detalhes e trocar de
+          estágio, ou arraste pelo ícone de pontinhos (⠿) no canto do cartão pra mover direto entre colunas.
+        </p>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:10px;">Virar venda automaticamente</h3>
+        <p style="font-size:13px; color:var(--ink-soft); line-height:1.6; font-weight:500;">
+          Se o lead já tiver <b>marca</b> e <b>valor estimado</b> preenchidos, mover ele pra "Vendido" já lança a
+          venda no CotaFlow sozinho, com as parcelas de comissão calculadas pelas regras que você configurou lá.
+          Se faltar alguma informação, o app pede pra completar antes.
+        </p>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:10px;">Follow-ups</h3>
+        <p style="font-size:13px; color:var(--ink-soft); line-height:1.6; font-weight:500;">
+          Defina uma data de próximo contato em cada lead. Quando estiver na hora, um aviso aparece no topo do
+          Funil. Isso funciona enquanto o app estiver aberto — pra lembrete com o app fechado, ainda não temos
+          notificação de fundo configurada.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SUPORTE ===================== -->
+  <section class="view" id="view-suporte">
+    <div class="wrap">
+      <p style="font-size:13px; color:var(--ink-soft); font-weight:500; margin-bottom:16px;">
+        Dúvida, sugestão ou algo não funcionou como devia? Fala com a gente:
+      </p>
+      <a class="support-link" href="https://wa.me/5562985165004" target="_blank">
+        <div class="si" style="background:var(--good-soft);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--good)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+        <div><div class="st">WhatsApp</div><div class="ss2">+55 62 98516-5004</div></div>
+      </a>
+      <a class="support-link" href="https://instagram.com/cotaflow.app" target="_blank">
+        <div class="si" style="background:var(--primary-soft);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></div>
+        <div><div class="st">Instagram</div><div class="ss2">@cotaflow.app</div></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===================== CONFIGURAÇÕES ===================== -->
+  <section class="view" id="view-config">
+    <div class="wrap">
+      <div class="card">
+        <div class="settings-row">
+          <div><div class="sl">Tema</div><div class="ss">Claro, escuro ou automático</div></div>
+          <div class="theme-toggle" id="themeToggle">
+            <button data-theme="light" onclick="setTheme('light')">Claro</button>
+            <button data-theme="dark" onclick="setTheme('dark')">Escuro</button>
+            <button data-theme="system" onclick="setTheme('system')">Auto</button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div><div class="sl">Idioma</div><div class="ss">Português (Brasil)</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="settings-row">
+          <div><div class="sl">CotaFlow CRM</div><div class="ss">Versão 1.0</div></div>
+        </div>
+      </div>
     </div>
   </section>
 </main>
@@ -388,13 +546,50 @@ function celebrarConversao(nome, valor){
 function openZoom(id){ document.getElementById(id).classList.add('show'); }
 function closeZoom(id){ document.getElementById(id).classList.remove('show'); }
 
+const DRAWER_TABS = ['ajuda','suporte','config'];
+const DRAWER_TITLES = { ajuda:'Ajuda', suporte:'Suporte', config:'Configurações' };
+
 function switchTab(tab){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+tab).classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+
+  const isDrawerScreen = DRAWER_TABS.includes(tab);
+  document.getElementById('brandbar').style.display = isDrawerScreen ? 'none' : 'flex';
+  document.getElementById('simpleHeader').style.display = isDrawerScreen ? 'flex' : 'none';
+  if(isDrawerScreen) document.getElementById('simpleHeaderTitle').textContent = DRAWER_TITLES[tab];
+
   currentTab = tab;
   if(tab === 'equipe') loadTeamLeads();
 }
+
+function openDrawer(){
+  document.getElementById('drawer').classList.add('show');
+  document.getElementById('drawerOverlay').classList.add('show');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('show');
+  document.getElementById('drawerOverlay').classList.remove('show');
+}
+
+/* ============================================================
+   TEMA — claro / escuro / automático (salvo no aparelho)
+   ============================================================ */
+function setTheme(mode){
+  localStorage.setItem('crm_theme', mode);
+  applyTheme(mode);
+}
+function applyTheme(mode){
+  const root = document.documentElement;
+  if(mode === 'light'){ root.setAttribute('data-theme','light'); }
+  else if(mode === 'dark'){ root.setAttribute('data-theme','dark'); }
+  else { root.removeAttribute('data-theme'); }
+  document.querySelectorAll('#themeToggle button').forEach(b=>b.classList.toggle('active', b.dataset.theme===mode));
+}
+(function initTheme(){
+  const saved = localStorage.getItem('crm_theme') || 'system';
+  applyTheme(saved);
+})();
 
 /* ============================================================
    AUTENTICAÇÃO — mesmo Firebase Auth do app CotaFlow
@@ -748,7 +943,10 @@ function renderFunil(){
   scroll.innerHTML = ESTAGIOS.map(est=>{
     const doEstagio = leads.filter(l=>l.estagio===est.key);
     const cards = doEstagio.map(l=>`
-      <div class="lead-card" data-lead-id="${l.id}" style="border-left-color:${est.cor};">
+      <div class="lead-card" data-lead-id="${l.id}" style="border-left-color:${est.cor};" onclick="openLeadDetail('${l.id}')">
+        <div class="drag-handle" data-lead-id="${l.id}" onclick="event.stopPropagation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>
+        </div>
         <div class="ln">${escapeHtml(l.nome)}</div>
         ${l.interesse ? `<div class="ls">${escapeHtml(l.interesse)}</div>` : ''}
         ${l.valorEstimado ? `<div class="lv">${fmtMoney(l.valorEstimado)}</div>` : ''}
@@ -776,9 +974,12 @@ function leadAtualEstagio(leadId){
 }
 
 function onFunilPointerDown(e){
-  const card = e.target.closest('.lead-card');
+  const handle = e.target.closest('.drag-handle');
+  if(!handle) return;
+  const card = handle.closest('.lead-card');
   if(!card) return;
-  dragState = { leadId: card.dataset.leadId, startX: e.clientX, startY: e.clientY, dragging:false, card, clone:null };
+  e.preventDefault();
+  dragState = { leadId: handle.dataset.leadId, startX: e.clientX, startY: e.clientY, dragging:false, card, clone:null };
   document.addEventListener('pointermove', onFunilPointerMove);
   document.addEventListener('pointerup', onFunilPointerUp, { once:true });
 }
@@ -787,7 +988,7 @@ function onFunilPointerMove(e){
   if(!dragState) return;
   const dx = e.clientX - dragState.startX;
   const dy = e.clientY - dragState.startY;
-  if(!dragState.dragging && Math.hypot(dx,dy) > 10){
+  if(!dragState.dragging && Math.hypot(dx,dy) > 6){
     dragState.dragging = true;
     const rect = dragState.card.getBoundingClientRect();
     const clone = dragState.card.cloneNode(true);
@@ -808,6 +1009,7 @@ function onFunilPointerMove(e){
     dragState.card.style.opacity = '0.25';
   }
   if(dragState.dragging){
+    e.preventDefault();
     dragState.clone.style.left = (e.clientX - dragState.offsetX) + 'px';
     dragState.clone.style.top = (e.clientY - dragState.offsetY) + 'px';
     document.querySelectorAll('.funil-col').forEach(c=>c.classList.remove('drop-hover'));
@@ -831,9 +1033,6 @@ function onFunilPointerUp(e){
     }
   }
   dragState = null;
-  if(!wasDragging){
-    openLeadDetail(leadId);
-  }
 }
 
 
