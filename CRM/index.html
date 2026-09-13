@@ -76,6 +76,7 @@
   .temp-toggle button[data-temp="morno"].active{ background:var(--gold-soft); color:var(--gold); }
   .temp-toggle button[data-temp="frio"].active{ background:var(--primary-soft); color:var(--primary); }
   .temp-badge{ display:inline-flex; align-items:center; gap:4px; font-size:9.5px; font-weight:700; text-transform:uppercase; padding:2px 8px; border-radius:100px; }
+  .sub-tag{ display:inline-block; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.02em; padding:2px 8px; border-radius:100px; margin-top:5px; }
   .temp-badge svg{ width:11px; height:11px; }
   .theme-toggle button{ border:none; background:none; padding:7px 13px; border-radius:100px; font-size:12px; font-weight:700; color:var(--ink-soft); cursor:pointer; font-family:'Inter',sans-serif; }
   .theme-toggle button.active{ background:var(--card); color:var(--ink); box-shadow:var(--shadow); }
@@ -371,6 +372,7 @@
       <div class="field" style="margin-bottom:10px;"><input type="text" id="leadsSearchInput" placeholder="Buscar por nome ou telefone…" oninput="renderLeadsList()"></div>
       <div class="filter-row" id="leadsFilterRow"></div>
       <div class="card" style="padding:6px 16px;" id="leadsListCard"></div>
+      <button class="btn ghost" id="loadMoreBtn" onclick="loadMoreLeads()" style="display:none; margin-top:4px;">Carregar mais leads</button>
     </div>
   </section>
 
@@ -445,6 +447,14 @@
         <div class="settings-row">
           <div><div class="sl">Idioma</div><div class="ss">Português (Brasil)</div></div>
         </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:8px;">Privacidade e segurança</h3>
+        <p style="font-size:12px; color:var(--ink-soft); font-weight:500; line-height:1.6; margin-bottom:12px;">
+          Login individual, dados separados por conta. Os leads e clientes que você cadastra aqui são seus —
+          você pode editar ou excluir o cadastro de qualquer um deles a qualquer momento.
+        </p>
+        <a class="btn ghost" href="/privacidade.html" target="_blank">Ver política de privacidade completa</a>
       </div>
       <div class="card">
         <div class="settings-row">
@@ -641,6 +651,9 @@ function toggleIndicadoPorField(){
 document.getElementById('leadOrigem').addEventListener('change', toggleIndicadoPorField);
 
 let currentUser = null;
+const LEADS_PAGE_SIZE = 150;
+let lastLeadDoc = null;
+let hasMoreLeads = false;
 const MOTIVOS_PERDA = ['Preço', 'Comprou com concorrente', 'Desistiu', 'Parou de responder', 'Não é o momento', 'Outro'];
 let dragState = null;
 document.getElementById('funilScroll').addEventListener('pointerdown', (e)=>onFunilPointerDown(e));
@@ -653,15 +666,30 @@ let leadsFilter = 'todos';
 
 const ESTAGIOS = [
   { key:'novo',          nome:'Novo lead',      cor:'#5B6470' },
+  { key:'sem_resposta',  nome:'Sem resposta',   cor:'#8A8F98' },
   { key:'contato',       nome:'Em contato',     cor:'#1E3A8A' },
   { key:'qualificado',   nome:'Qualificado',    cor:'#2E7DA6' },
-  { key:'simulacao',     nome:'Simulação',      cor:'#8B3FA8' },
-  { key:'proposta',      nome:'Proposta',       cor:'#B8862E' },
-  { key:'negociacao',    nome:'Negociação',     cor:'#B8862E' },
+  { key:'negociacao',    nome:'Negociação',     cor:'#8B3FA8', subEstagios:[
+      { key:'simulacao', nome:'Simulação' },
+      { key:'proposta',  nome:'Proposta enviada' }
+    ] },
   { key:'documentacao',  nome:'Documentação',   cor:'#C2662E' },
   { key:'ganho',         nome:'Vendido',        cor:'#1B8F6B' },
   { key:'perdido',       nome:'Perdido',        cor:'#C23A3A' }
 ];
+
+// Compatibilidade: leads antigos que ficaram salvos direto como 'simulacao' ou
+// 'proposta' (antes de virarem sub-etiquetas dentro de "Negociação") continuam
+// aparecendo corretamente agrupados em "Negociação", com a etiqueta certa.
+function getEstagioEfetivo(lead){
+  if(lead.estagio === 'simulacao' || lead.estagio === 'proposta') return 'negociacao';
+  return lead.estagio;
+}
+function getSubEstagio(lead){
+  if(lead.estagio === 'simulacao' || lead.estagio === 'proposta') return lead.estagio;
+  return lead.subEstagio || null;
+}
+
 
 const fmtMoney = (v) => 'R$ ' + (v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 const AVATAR_PALETTE = ['#1E3A8A','#B8862E','#1B8F6B','#8B3FA8','#C2662E','#2E7DA6','#A83F6E'];
@@ -809,10 +837,16 @@ auth.onAuthStateChanged(async (user) => {
    ============================================================ */
 async function loadLeads(){
   try{
-    const snap = await db.collection('leads').where('ownerId','==', currentUser.uid).get();
+    lastLeadDoc = null;
+    const snap = await db.collection('leads')
+      .where('ownerId','==', currentUser.uid)
+      .orderBy('atualizadoEm','desc')
+      .limit(LEADS_PAGE_SIZE)
+      .get();
     leads = [];
     snap.forEach(doc => leads.push({ id: doc.id, ...doc.data() }));
-    leads.sort((a,b) => (b.atualizadoEm||'').localeCompare(a.atualizadoEm||''));
+    lastLeadDoc = snap.docs[snap.docs.length - 1] || null;
+    hasMoreLeads = snap.docs.length === LEADS_PAGE_SIZE;
     renderFunil();
     renderLeadsList();
     checkFollowups();
@@ -820,6 +854,30 @@ async function loadLeads(){
     renderHoje();
   }catch(e){
     showToast('Erro ao carregar leads: ' + e.message);
+  }
+}
+
+async function loadMoreLeads(){
+  if(!lastLeadDoc) return;
+  const btn = document.getElementById('loadMoreBtn');
+  if(btn){ btn.textContent = 'Carregando…'; btn.disabled = true; }
+  try{
+    const snap = await db.collection('leads')
+      .where('ownerId','==', currentUser.uid)
+      .orderBy('atualizadoEm','desc')
+      .startAfter(lastLeadDoc)
+      .limit(LEADS_PAGE_SIZE)
+      .get();
+    snap.forEach(doc => leads.push({ id: doc.id, ...doc.data() }));
+    lastLeadDoc = snap.docs[snap.docs.length - 1] || lastLeadDoc;
+    hasMoreLeads = snap.docs.length === LEADS_PAGE_SIZE;
+    renderFunil();
+    renderLeadsList();
+    showToast(`+${snap.docs.length} leads carregados`);
+  }catch(e){
+    showToast('Erro ao carregar mais: ' + e.message);
+  }finally{
+    if(btn){ btn.textContent = 'Carregar mais leads'; btn.disabled = false; }
   }
 }
 
@@ -893,7 +951,7 @@ function checkLeadsEsfriando(){
    sabe o que fazer, sem precisar garimpar pelo funil inteiro
    ============================================================ */
 function renderHojeLeadRow(l){
-  const est = ESTAGIOS.find(e=>e.key===l.estagio) || ESTAGIOS[0];
+  const est = ESTAGIOS.find(e=>e.key===getEstagioEfetivo(l)) || ESTAGIOS[0];
   return `<div class="lead-row" onclick="openLeadDetail('${l.id}')">
     <div class="lead-row-avatar" style="background:${avatarColor(l.nome)}22; color:${avatarColor(l.nome)};">${(l.nome||'?').charAt(0).toUpperCase()}</div>
     <div class="lead-row-body"><div class="n">${escapeHtml(l.nome)} ${l.temperatura ? tempBadgeHtml(l.temperatura) : ''}</div><div class="s">${escapeHtml(l.interesse||'')}</div></div>
@@ -1029,10 +1087,13 @@ async function saveLead(){
   }
 }
 
-async function moverEstagio(leadId, novoEstagio){
+async function moverEstagio(leadId, novoEstagio, subEstagio){
   try{
-    await db.collection('leads').doc(leadId).set({ estagio: novoEstagio, atualizadoEm: new Date().toISOString() }, {merge:true});
-    showToast('Lead movido para "' + ESTAGIOS.find(e=>e.key===novoEstagio).nome + '"');
+    const payload = { estagio: novoEstagio, atualizadoEm: new Date().toISOString() };
+    if(novoEstagio === 'negociacao') payload.subEstagio = subEstagio || null;
+    await db.collection('leads').doc(leadId).set(payload, {merge:true});
+    const subNome = subEstagio ? ' — ' + ESTAGIOS.find(e=>e.key==='negociacao').subEstagios.find(s=>s.key===subEstagio).nome : '';
+    showToast('Lead movido para "' + ESTAGIOS.find(e=>e.key===novoEstagio).nome + subNome + '"');
     closeZoom('leadDetailOverlay');
     await loadLeads();
     if(novoEstagio === 'ganho'){
@@ -1161,7 +1222,7 @@ async function excluirLead(leadId){
 function openLeadDetail(leadId){
   const lead = leads.find(l=>l.id===leadId) || (window._teamLeadsCache||[]).find(l=>l.id===leadId);
   if(!lead) return;
-  const est = ESTAGIOS.find(e=>e.key===lead.estagio) || ESTAGIOS[0];
+  const est = ESTAGIOS.find(e=>e.key===getEstagioEfetivo(lead)) || ESTAGIOS[0];
   const isOwn = lead.ownerId === currentUser.uid;
 
   const notasHtml = (lead.notas||[]).slice().reverse().map(n=>`
@@ -1171,9 +1232,14 @@ function openLeadDetail(leadId){
     </div>
   `).join('') || `<p style="font-size:12px; color:var(--ink-soft); text-align:center; padding:14px 0;">Nenhuma anotação ainda.</p>`;
 
+  const estagioAtual = getEstagioEfetivo(lead);
   const estagioBotoes = ESTAGIOS.map(e=>{
-    const acao = e.key==='perdido' ? `abrirMotivoPerda('${lead.id}')` : `moverEstagio('${lead.id}','${e.key}')`;
-    return `<button class="chip ${e.key===lead.estagio?'active':''}" onclick="${acao}">${e.nome}</button>`;
+    let acao;
+    if(e.key==='perdido') acao = `abrirMotivoPerda('${lead.id}')`;
+    else if(e.key==='negociacao') acao = `abrirSubEstagio('${lead.id}')`;
+    else acao = `moverEstagio('${lead.id}','${e.key}')`;
+    const subAtual = e.subEstagios && estagioAtual===e.key ? e.subEstagios.find(s=>s.key===getSubEstagio(lead)) : null;
+    return `<button class="chip ${estagioAtual===e.key?'active':''}" onclick="${acao}">${e.nome}${subAtual ? ' · '+subAtual.nome : ''}</button>`;
   }).join('');
 
   document.getElementById('leadDetailContent').innerHTML = `
@@ -1243,19 +1309,23 @@ function renderFunil(){
   document.getElementById('funilTotal').textContent = leads.length + (leads.length===1?' lead':' leads');
   const scroll = document.getElementById('funilScroll');
   scroll.innerHTML = ESTAGIOS.map(est=>{
-    const doEstagio = leads.filter(l=>l.estagio===est.key);
-    const cards = doEstagio.map(l=>`
+    const doEstagio = leads.filter(l=>getEstagioEfetivo(l)===est.key);
+    const cards = doEstagio.map(l=>{
+      const sub = est.subEstagios ? est.subEstagios.find(s=>s.key===getSubEstagio(l)) : null;
+      return `
       <div class="lead-card" data-lead-id="${l.id}" style="border-left-color:${est.cor};" onclick="openLeadDetail('${l.id}')">
         <div class="drag-handle" data-lead-id="${l.id}" onclick="event.stopPropagation()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>
         </div>
         <div class="ln">${escapeHtml(l.nome)}</div>
+        ${sub ? `<span class="sub-tag" style="background:${est.cor}22; color:${est.cor};">${sub.nome}</span>` : ''}
         ${l.temperatura ? `<div style="margin-top:5px;">${tempBadgeHtml(l.temperatura)}</div>` : ''}
         ${l.interesse ? `<div class="ls">${escapeHtml(l.interesse)}</div>` : ''}
         ${l.valorEstimado ? `<div class="lv">${fmtMoney(l.valorEstimado)}</div>` : ''}
         <div class="lt">Atualizado ${fmtDate(l.atualizadoEm)}</div>
       </div>
-    `).join('') || `<p style="font-size:12px; color:var(--ink-faint); text-align:center; padding:20px 0;">Vazio</p>`;
+    `;
+    }).join('') || `<p style="font-size:12px; color:var(--ink-faint); text-align:center; padding:20px 0;">Vazio</p>`;
     return `
       <div class="funil-col" data-estagio="${est.key}">
         <div class="funil-col-head" style="background:${est.cor}1c; color:${est.cor};">
@@ -1273,7 +1343,7 @@ function renderFunil(){
    ============================================================ */
 function leadAtualEstagio(leadId){
   const l = leads.find(x=>x.id===leadId);
-  return l ? l.estagio : null;
+  return l ? getEstagioEfetivo(l) : null;
 }
 
 function onFunilPointerDown(e){
@@ -1332,7 +1402,11 @@ function onFunilPointerUp(e){
     if(dragState.clone) dragState.clone.remove();
     document.querySelectorAll('.funil-col').forEach(c=>c.classList.remove('drop-hover'));
     if(colUnder && colUnder.dataset.estagio && colUnder.dataset.estagio !== leadAtualEstagio(leadId)){
-      moverEstagio(leadId, colUnder.dataset.estagio);
+      if(colUnder.dataset.estagio === 'negociacao'){
+        abrirSubEstagio(leadId);
+      } else {
+        moverEstagio(leadId, colUnder.dataset.estagio);
+      }
     }
   } else {
     // toque simples no puxador (sem arrastar) — abre o menu "mover para qualquer estágio"
@@ -1348,18 +1422,35 @@ function onFunilPointerUp(e){
 function openQuickMoveMenu(leadId){
   const lead = leads.find(l=>l.id===leadId) || (window._teamLeadsCache||[]).find(l=>l.id===leadId);
   if(!lead) return;
+  const atual = getEstagioEfetivo(lead);
   const botoes = ESTAGIOS.map(e=>{
-    const acao = e.key==='perdido' ? `abrirMotivoPerda('${lead.id}')` : `moverEstagio('${lead.id}','${e.key}'); closeZoom('quickMoveOverlay');`;
+    let acao;
+    if(e.key==='perdido') acao = `abrirMotivoPerda('${lead.id}')`;
+    else if(e.key==='negociacao') acao = `abrirSubEstagio('${lead.id}')`;
+    else acao = `moverEstagio('${lead.id}','${e.key}'); closeZoom('quickMoveOverlay');`;
+    const subAtual = e.subEstagios && atual===e.key ? e.subEstagios.find(s=>s.key===getSubEstagio(lead)) : null;
     return `
-    <button class="quick-move-btn ${e.key===lead.estagio?'current':''}" onclick="${acao}" ${e.key===lead.estagio?'disabled':''}>
+    <button class="quick-move-btn ${atual===e.key?'current':''}" onclick="${acao}" ${atual===e.key?'disabled':''}>
       <span class="dot" style="background:${e.cor};"></span>
-      <span>${e.nome}</span>
-      ${e.key===lead.estagio ? '<span class="current-tag">Atual</span>' : ''}
+      <span>${e.nome}${subAtual ? ' — '+subAtual.nome : ''}</span>
+      ${atual===e.key ? '<span class="current-tag">Atual</span>' : ''}
     </button>
   `;
   }).join('');
   document.getElementById('quickMoveContent').innerHTML = `
     <div class="zoom-head"><h3>Mover ${escapeHtml(lead.nome)} para…</h3><button class="close-x" onclick="closeZoom('quickMoveOverlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    ${botoes}
+  `;
+  openZoom('quickMoveOverlay');
+}
+
+function abrirSubEstagio(leadId){
+  const negociacao = ESTAGIOS.find(e=>e.key==='negociacao');
+  const botoes = negociacao.subEstagios.map(s => `
+    <button class="quick-move-btn" onclick="moverEstagio('${leadId}','negociacao','${s.key}'); closeZoom('quickMoveOverlay');"><span>${s.nome}</span></button>
+  `).join('');
+  document.getElementById('quickMoveContent').innerHTML = `
+    <div class="zoom-head"><h3>Em qual momento da negociação?</h3><button class="close-x" onclick="closeZoom('quickMoveOverlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
     ${botoes}
   `;
   openZoom('quickMoveOverlay');
@@ -1403,7 +1494,7 @@ function renderLeadsList(){
   filterRow.innerHTML = `<button class="chip ${leadsFilter==='todos'?'active':''}" onclick="setLeadsFilter('todos')">Todos</button>` +
     ESTAGIOS.map(e=>`<button class="chip ${leadsFilter===e.key?'active':''}" onclick="setLeadsFilter('${e.key}')">${e.nome}</button>`).join('');
 
-  let filtrados = leadsFilter==='todos' ? leads : leads.filter(l=>l.estagio===leadsFilter);
+  let filtrados = leadsFilter==='todos' ? leads : leads.filter(l=>getEstagioEfetivo(l)===leadsFilter);
   const busca = (document.getElementById('leadsSearchInput')?.value || '').trim().toLowerCase();
   const buscaDigits = busca.replace(/\D/g,'');
   if(busca){
@@ -1412,13 +1503,17 @@ function renderLeadsList(){
       (buscaDigits.length > 0 && (l.telefone||'').replace(/\D/g,'').includes(buscaDigits))
     );
   }
+
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+  loadMoreBtn.style.display = (hasMoreLeads && leadsFilter==='todos' && !busca) ? '' : 'none';
+
   const card = document.getElementById('leadsListCard');
   if(filtrados.length===0){
     card.innerHTML = emptyState('Nenhum lead aqui', 'Toque no botão + pra cadastrar seu primeiro lead.');
     return;
   }
   card.innerHTML = filtrados.map(l=>{
-    const est = ESTAGIOS.find(e=>e.key===l.estagio) || ESTAGIOS[0];
+    const est = ESTAGIOS.find(e=>e.key===getEstagioEfetivo(l)) || ESTAGIOS[0];
     return `
       <div class="lead-row" onclick="openLeadDetail('${l.id}')">
         <div class="lead-row-avatar" style="background:${avatarColor(l.nome)}22; color:${avatarColor(l.nome)};">${(l.nome||'?').charAt(0).toUpperCase()}</div>
@@ -1467,7 +1562,7 @@ async function loadTeamLeads(){
       const lista = porVendedor[uid];
       const ganhos = lista.filter(l=>l.estagio==='ganho').length;
       const rows = lista.map(l=>{
-        const est = ESTAGIOS.find(e=>e.key===l.estagio) || ESTAGIOS[0];
+        const est = ESTAGIOS.find(e=>e.key===getEstagioEfetivo(l)) || ESTAGIOS[0];
         return `<div class="lead-row" onclick="openLeadDetail('${l.id}')">
           <div class="lead-row-avatar" style="background:${avatarColor(l.nome)}22; color:${avatarColor(l.nome)};">${(l.nome||'?').charAt(0).toUpperCase()}</div>
           <div class="lead-row-body"><div class="n">${escapeHtml(l.nome)}</div><div class="s">${escapeHtml(l.interesse||'')}</div></div>
