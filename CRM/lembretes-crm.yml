@@ -1,0 +1,30 @@
+name: Lembretes do CRM
+
+on:
+  schedule:
+    # a cada 15 min, das 7h às 21h45 de Brasília (10h–00h45 UTC)
+    - cron: '*/15 10-23 * * *'
+    - cron: '*/15 0 * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: lembretes-crm
+  cancel-in-progress: false
+
+jobs:
+  enviar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Instalar firebase-admin
+        run: npm install --no-save --no-audit --no-fund firebase-admin@12
+      - name: Enviar lembretes
+        run: node scripts/lembretes-crm.mjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
